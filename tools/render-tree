@@ -129,11 +129,17 @@ def render(root, cfg, nodes, asks):
             bc = (s.get("bestConstant") or {}).get("price")
             if bc is not None:
                 line += "\nbest constant on that board: %.1f" % bc
-            if s.get("costPerMarket"):
-                line += "\ncost: $%.5f a market, %ss in total" % (
-                    s["costPerMarket"], s.get("seconds"))
-            elif s.get("seconds") is not None:
-                line += "\ncost: no gate spend, %ss" % s.get("seconds")
+            # Unknown and zero are different claims. An agent whose spend
+            # was never measured must not be shown as one that spent
+            # nothing, which is what this said before.
+            secs = (", %ss in total" % s["seconds"]
+                    if s.get("seconds") is not None else "")
+            if s.get("costUSD") is None:
+                line += "\ncost: not measured%s" % secs
+            elif s.get("costPerMarket"):
+                line += "\ncost: $%.5f a market%s" % (s["costPerMarket"], secs)
+            else:
+                line += "\ncost: nothing, it pays for no calls%s" % secs
         tip = "%s\n%s\n%s" % (
             n["name"], n["difference"] or "(no difference stated)", line)
         if n.get("operator") and n["operator"] != "root":
