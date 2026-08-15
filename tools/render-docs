@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+"""Regenerate index.html from docs/practice.md. The docs win."""
 import html, os, re
-ROOT = os.path.expanduser("~/src/agent-evolution")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src = os.path.join(ROOT, "docs", "practice.md")
 text = open(src).read()
 def md(t):
