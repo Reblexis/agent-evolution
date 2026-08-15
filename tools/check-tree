@@ -72,18 +72,18 @@ def main():
             if top in {s.replace("-", "_") for s in slugs} and top != api:
                 errs.append("%s: imports another agent (%s)" % (rel, mod))
 
-    # frozen hashes
+    # an agent is frozen by its result: the score file records the hash of
+    # the code that produced it, and that file is written once
     for rel, n in sorted(nodes.items()):
-        fr = n.get("frozen") or {}
-        if not fr.get("hash"):
-            if n["score"] is not None:
-                errs.append("%s: has a score but was never frozen" % rel)
+        was = ((n.get("score") or {}).get("hash")
+               or (n.get("frozen") or {}).get("hash"))
+        if not was:
             continue
         h = lib.impl_hash(n["dir"])
-        if h != fr["hash"]:
-            errs.append("%s: EDITED AFTER FREEZE - implementation hashes to "
-                        "%s, frozen at %s. Make a child instead."
-                        % (rel, (h or "none")[:12], fr["hash"][:12]))
+        if h != was:
+            errs.append("%s: EDITED AFTER IT WAS SCORED - implementation "
+                        "hashes to %s, scored with %s. Make a child instead."
+                        % (rel, (h or "none")[:12], was[:12]))
 
     if errs:
         print("check-tree: %d problem(s)" % len(errs))
