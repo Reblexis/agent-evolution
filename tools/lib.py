@@ -46,11 +46,42 @@ def impl_path(node_dir, cfg=None):
     return None
 
 
+#: Things inside an agent folder that are written after it ran, and so are
+#: not part of what produced its number. Everything else is.
+NOT_THE_AGENT = ("RECORD.md", "node.json")
+
+
 def impl_hash(node_dir, cfg=None):
-    p = impl_path(node_dir, cfg)
-    if not p:
+    """Hash the whole agent folder.
+
+    An agent is its folder, not its entry point: a data file, a prompt, a
+    second module beside the entry point are all part of what produced the
+    number. Excluded are the things written afterwards - the record, the
+    status, the analysis - and any nested folder that is an agent in its own
+    right, because a child is not part of its parent.
+
+    A project's runner must hash agents this way too, or a freeze check
+    compares two different questions and the answer means nothing. That is
+    not hypothetical: the first project to run this practice had a runner
+    hashing the folder and a checker hashing one file, and the disagreement
+    surfaced as a false "edited after it was scored" on agents nobody had
+    touched.
+    """
+    if not impl_path(node_dir, cfg):
         return None
-    return hashlib.sha256(open(p, "rb").read()).hexdigest()
+    h = hashlib.sha256()
+    for dirpath, dirnames, filenames in os.walk(node_dir):
+        dirnames[:] = sorted(
+            d for d in dirnames
+            if d not in ("__pycache__", "analysis")
+            and not os.path.exists(os.path.join(dirpath, d, "node.json")))
+        for fn in sorted(filenames):
+            rel = os.path.relpath(os.path.join(dirpath, fn), node_dir)
+            if rel in NOT_THE_AGENT or rel.endswith(".pyc"):
+                continue
+            h.update(rel.encode())
+            h.update(open(os.path.join(dirpath, fn), "rb").read())
+    return h.hexdigest()
 
 
 def spec_of(node_dir):

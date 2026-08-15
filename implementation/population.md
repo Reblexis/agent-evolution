@@ -60,11 +60,31 @@ agent has a score and never changes after.
 
 An agent is frozen the moment a score is written for it. From then on:
 
-- its implementation, `SPEC.md` and `analysis/` are immutable
+- its implementation and `SPEC.md` are immutable
 - the recorded hash is checked mechanically; a mismatch is an error, not a
   warning
 - a correction is an erratum appended to `RECORD.md`
 - any change of behaviour is a new agent, even a one-line change
+
+### What the hash covers
+
+**An agent is its folder, not its entry point.** A data file, a prompt, a
+second module beside the entry point are all part of what produced the
+number, so all of them are hashed. Three things are excluded, because they
+are written after the run rather than being part of it: `RECORD.md`,
+`node.json`, and `analysis/`. So is any nested folder that is an agent in
+its own right — a child is not part of its parent.
+
+`analysis/` in particular has to be excluded rather than merely allowed to
+change, because it compares an agent against the rest of the population and
+the population keeps growing. Every new agent changes every older agent's
+analysis, and none of that is an edit to the older agent.
+
+The project's runner must hash agents this exact way. If the runner and the
+checker hash differently, the check is asking a different question than the
+freeze answered, and the visible symptom is a false "edited after it was
+scored" on agents nobody touched — which is how this rule got written.
+Projects should carry a test that the two agree.
 
 The rule exists because a number that does not refer to an exact
 implementation refers to nothing, and because populations that allow
