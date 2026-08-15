@@ -17,10 +17,34 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lib  # noqa: E402
 
-COL = {"champion": "#1baf7a", "candidate": "#eda100", "scored": "#5b8dd6",
-       "draft": "#8a8a8a", "closed": "#b25757"}
 WORD = {"champion": "in use", "candidate": "being tested",
         "scored": "measured", "draft": "not run yet", "closed": "closed"}
+
+#: Score is the colour, on one hue from pale to dark. One hue rather than a
+#: rainbow because score is a magnitude: the reader should be able to rank
+#: two nodes by looking at them, and a rainbow only tells you they differ.
+#: Darkest is best, whichever direction "best" runs in for the project.
+RAMP = ["#dce8f5", "#b2ccea", "#7ea9d8", "#4e83c0", "#2b5f9e", "#173f70"]
+NOSCORE = "#c9c9c9"
+
+#: Cost is the area. sqrt so that twice the area means twice the money,
+#: which is what the eye reads, and a floor so a free agent is still a dot.
+R_MIN, R_MAX = 4.5, 13.0
+
+
+def ramp_colour(val, lo, hi, lower_is_better):
+    if val is None or hi is None or hi <= lo:
+        return NOSCORE if val is None else RAMP[-1]
+    t = (val - lo) / float(hi - lo)
+    if lower_is_better:
+        t = 1.0 - t
+    return RAMP[max(0, min(len(RAMP) - 1, int(t * (len(RAMP) - 1) + 0.5)))]
+
+
+def radius(cost, worst):
+    if not cost or not worst:
+        return R_MIN
+    return R_MIN + (R_MAX - R_MIN) * (float(cost) / worst) ** 0.5
 
 
 def status_of(n):
@@ -84,6 +108,12 @@ def render(root, cfg, nodes, asks):
     metric = cfg.get("metric", {})
     lower = metric.get("lowerIsBetter", True)
     depth, row = layout(nodes)
+    vals = [n["score"]["score"] for n in nodes.values()
+            if (n.get("score") or {}).get("score") is not None]
+    smin, smax = (min(vals), max(vals)) if vals else (None, None)
+    costs = [(n.get("score") or {}).get("costPerMarket") or 0
+             for n in nodes.values()]
+    worst_cost = max(costs) if costs else 0
     LANE, COLW, PADL, PADT = 34, 210, 20, 34
     W = PADL + COLW * (max(depth.values()) + 1) + 120 if nodes else 600
     H = PADT * 2 + LANE * (len(nodes) or 1)
@@ -112,15 +142,17 @@ def render(root, cfg, nodes, asks):
                            % (mx, my, esc(op)))
     for rel, n in sorted(nodes.items()):
         st = status_of(n)
-        c = COL.get(st, "#8a8a8a")
         s = n.get("score") or {}
         val = s.get("score")
+        c = ramp_colour(val if isinstance(val, (int, float)) else None,
+                        smin, smax, lower)
+        r = radius(s.get("costPerMarket"), worst_cost)
         lbl = n["name"]
         num = ("%.1f" % val) if isinstance(val, (int, float)) else ""
         lo, hi = s.get("lo"), s.get("hi")
         line = "not scored yet"
         if isinstance(val, (int, float)):
-            line = "%s %.1f" % (s.get("scoreIs") or "score", val)
+            line = "SCORE %.1f (%s)" % (val, s.get("scoreIs") or "score")
             if isinstance(lo, (int, float)) and isinstance(hi, (int, float)):
                 line += " [%.1f, %.1f]" % (lo, hi)
             line += " on %s" % (s.get("board") or "?")
@@ -144,13 +176,17 @@ def render(root, cfg, nodes, asks):
             n["name"], n["difference"] or "(no difference stated)", line)
         if n.get("operator") and n["operator"] != "root":
             tip += "\nmade by: %s" % n["operator"]
-        svg.append('<circle cx="%g" cy="%g" r="6.5" fill="%s"><title>%s'
-                   '</title></circle>' % (X(rel), Y(rel), c, esc(tip)))
+        ring = ' stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="2 2"' \
+            if st == "closed" else ""
+        svg.append('<circle cx="%g" cy="%g" r="%g" fill="%s"%s><title>%s'
+                   '</title></circle>'
+                   % (X(rel), Y(rel), r, c, ring, esc(tip)))
         svg.append('<text x="%g" y="%g" fill="var(--fg)" '
                    'dominant-baseline="middle"><title>%s</title>%s'
-                   '<tspan dx="8" fill="%s" font-weight="600">%s</tspan>'
-                   '</text>'
-                   % (X(rel) + 12, Y(rel), esc(tip), esc(lbl), c, esc(num)))
+                   '<tspan dx="8" fill="var(--muted)" font-weight="700">%s'
+                   '</tspan></text>'
+                   % (X(rel) + R_MAX + 4, Y(rel), esc(tip), esc(lbl),
+                      esc(num)))
     svg.append("</svg>")
 
     open_asks = [a for a in asks if a.get("status", "open") == "open"]
@@ -159,6 +195,31 @@ def render(root, cfg, nodes, asks):
         % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
            esc(a.get("unblocks", "")))
         for a in open_asks) or "<li>Nothing right now.</li>"
+
+    # A colour scale nobody explained is decoration. The legend states
+    # both encodings and the range they cover on this board.
+    if vals:
+        best, wor = (smin, smax) if lower else (smax, smin)
+        chips = "".join(
+            '<span class="chip" style="background:%s"></span>' % c
+            for c in (RAMP if lower else list(reversed(RAMP))))
+        legend = (
+            '<div class="key"><span><b>colour</b> is the score: '
+            '<span class="q">worst %.1f</span> %s '
+            '<span class="q">best %.1f</span></span>'
+            % (wor, chips, best))
+        if worst_cost:
+            legend += (
+                '<span><b>size</b> is what it costs a market: '
+                '<svg width="34" height="28" style="vertical-align:middle">'
+                '<circle cx="7" cy="14" r="%g" fill="var(--muted)"/>'
+                '<circle cx="25" cy="14" r="%g" fill="var(--muted)"/></svg>'
+                '<span class="q">free to $%.5f</span></span>'
+                % (R_MIN, R_MAX, worst_cost))
+        legend += ('<span><span class="dashed"></span> a dashed ring means '
+                   'the agent is closed</span></div>')
+    else:
+        legend = ""
 
     screen = metric.get("screen")
     note = ("%s, lower is better. " if lower else "%s, higher is better. ") \
@@ -182,6 +243,12 @@ h1{font-size:22px;margin:0 0 .2rem} h2{font-size:17px;margin:2rem 0 .4rem}
 padding:1rem;overflow-x:auto}
 ul{margin:.3rem 0;padding-left:1.2rem} li{margin:.35rem 0}
 .q{color:var(--muted)}
+.key{display:flex;flex-wrap:wrap;gap:1.4rem;align-items:center;
+margin:0 0 .7rem;font-size:13.5px;color:var(--fg)}
+.key>span{display:flex;align-items:center;gap:.4rem}
+.chip{display:inline-block;width:15px;height:11px;border-radius:2px}
+.dashed{display:inline-block;width:13px;height:13px;border-radius:50%%;
+border:1.4px dashed var(--muted)}
 #tip{position:fixed;pointer-events:none;background:var(--card);
 border:1px solid var(--line);border-radius:8px;padding:8px 12px;
 font-size:13px;max-width:380px;display:none;z-index:9;white-space:pre-line;
@@ -189,6 +256,7 @@ line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 </style></head><body><div id="tip"></div>
 <h1>%s</h1>
 <div class="sub">%s Updated %s.</div>
+%s
 <div class="box">%s</div>
 <h2>Waiting on you</h2>
 <div class="box"><ul>%s</ul></div>
@@ -205,7 +273,7 @@ document.addEventListener('mousemove',function(e){
         esc(cfg.get("name", "population")), esc(cfg.get("title")
                                                 or cfg.get("name", "")),
         note, time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()),
-        "".join(svg), asks_html)
+        legend, "".join(svg), asks_html)
 
 
 def main():

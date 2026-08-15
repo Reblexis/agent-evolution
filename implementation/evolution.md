@@ -160,6 +160,44 @@ itself.
 this operator the population only ever explores its own neighbourhood, and
 the cost of that is invisible until it is enormous.
 
+### ask-operator
+
+*Input*: the population as it stands, and one agent the researcher wants
+advice on.
+*Procedure*: write the human a description of where things actually are -
+what each family does, what the numbers say, where this agent is strong and
+where it is weak, what has been tried on it and failed - and ask what to
+change. Then **leave**.
+*Control*: the child that eventually comes back is judged like any other,
+and its record quotes the reply that produced it, so a human suggestion
+that does not work is recorded as such rather than quietly dropped.
+
+**It must never block.** A human answers on their own schedule, and a
+population that waits is a population doing nothing. So the operator has
+two halves that run at different times:
+
+- **filing.** The question goes into the asks channel with the state
+  description attached. The operator then returns, and the round
+  immediately selects a different agent and applies a different operator.
+  Nothing waits.
+- **collecting.** Every round begins by checking the asks channel for
+  answered questions. An answer that has not yet produced an agent produces
+  one now, as an ordinary child with `ask-operator` as its operator and the
+  agent that was asked about as its parent.
+
+An answer that arrives three days later is still worth acting on, and a
+question that is never answered costs nothing beyond the writing.
+
+This is the only operator whose input comes from outside the system. That
+is exactly why it is worth having: everything else can only recombine what
+the population already contains, and the human is the one participant who
+can see the frame the whole population is working inside. It is also the
+operator most likely to be quietly skipped, because filing a question feels
+less like progress than building something.
+
+Writing the description is most of the value even when no reply comes. A
+researcher who cannot say plainly what its agents are good at does not know.
+
 ## What is not an operator
 
 Changing a parameter. That is a substitution, and it needs the same stated
