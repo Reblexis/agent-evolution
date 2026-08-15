@@ -148,11 +148,22 @@ def load_asks(root, cfg):
         if not fn.endswith(".md"):
             continue
         rec = {"file": fn, "status": "open"}
+        key = None
         for line in open(os.path.join(d, fn)):
-            if ":" in line:
-                k, v = line.split(":", 1)
-                k = k.strip().lower()
-                if k in ("what", "why", "unblocks", "cost", "status"):
-                    rec[k] = v.strip()
+            head = line.split(":", 1)
+            k = head[0].strip().lower()
+            if len(head) == 2 and k in FIELDS and not line[:1].isspace():
+                key, rec[k] = k, head[1].strip()
+            elif key and line.strip():
+                # A wrapped line continues the field above it. Without this
+                # every request was cut off at its first line, which on a
+                # page whose whole job is to say what a researcher needs is
+                # the difference between a request and a fragment.
+                rec[key] = (rec[key] + " " + line.strip()).strip()
+            elif not line.strip():
+                key = None
         out.append(rec)
     return out
+
+
+FIELDS = ("what", "why", "unblocks", "cost", "status")
