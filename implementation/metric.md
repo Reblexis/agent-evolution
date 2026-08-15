@@ -27,8 +27,8 @@ per-task table, and writes the score. Agents are never scored by hand.
 The score that decides promotions is measured against what actually
 happened, not against another estimate of what will happen.
 
-A score measured against an estimate — another system's answer, a market
-price, a stronger model's opinion — measures agreement with that estimator.
+A score measured against an estimate, another system's answer, a market
+price, a stronger model's opinion, measures agreement with that estimator.
 A population evolved against it converges on imitating the estimator,
 including where the estimator is wrong, and the better the population gets
 at the metric the less the metric distinguishes it from the thing it is
@@ -89,15 +89,15 @@ is what makes the comparison mean something, on both scores.
 ## The two mandatory controls
 
 **The population's own noise.** Before a threshold is declared, run the
-incumbent against itself on that board — two independent runs of identical
-code — and measure the spread of the difference. A threshold inside that
+incumbent against itself on that board, two independent runs of identical
+code, and measure the spread of the difference. A threshold inside that
 spread cannot be met by a real effect, so declaring one guarantees either a
 null or a false positive. The band is measured on the board in question:
 bands do not transfer between boards, and importing one is a common way to
 buy a result that was never buyable.
 
-**The constant.** Whatever the simplest rule is that ignores the input — the
-same answer every time, the most common outcome, doing nothing — a claim
+**The constant.** Whatever the simplest rule is that ignores the input, the
+same answer every time, the most common outcome, doing nothing, a claim
 must beat it. Most apparent skill on a skewed population is that population's
 marginal wearing a mechanism's name. The constant is computed on the same
 tasks with the same scoring, and reported next to the claim.
@@ -110,7 +110,7 @@ wrong inputs, which separates using the input from reacting to its presence.
 ## Reporting
 
 Every claim carries the board it was measured on, the number, its interval,
-the noise band, the constant, and the number of independent clusters — not
+the noise band, the constant, and the number of independent clusters, not
 the number of tasks, where tasks are correlated within a cluster. Numbers
 enter a record as pasted output from the run that produced them.
 

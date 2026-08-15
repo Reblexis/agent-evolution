@@ -155,7 +155,7 @@ def render(root, cfg, nodes, asks):
 
     open_asks = [a for a in asks if a.get("status", "open") == "open"]
     asks_html = "".join(
-        '<li><b>%s</b> — %s <span class="q">unblocks %s</span></li>'
+        '<li><b>%s</b>, %s <span class="q">unblocks %s</span></li>'
         % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
            esc(a.get("unblocks", "")))
         for a in open_asks) or "<li>Nothing right now.</li>"

@@ -40,8 +40,8 @@ lose the parent's successes.
 ### rational-ablation
 
 *Input*: this agent's failures, attributed to its components.
-*Procedure*: determine which component is causing the damage — not which is
-unused — and remove it.
+*Procedure*: determine which component is causing the damage, not which is
+unused, and remove it.
 *Control*: the argument comes from the failing cases, not from trying every
 removal and keeping the best. A removal that improves things without an
 explanation is a finding to investigate, not a child to ship.
@@ -70,7 +70,7 @@ with a new board.
 
 *Input*: the tasks where this agent beats the rest of the population.
 *Procedure*: name the general reason it wins there, then amplify that
-mechanism — apply it more deeply, or more widely, or with more of whatever
+mechanism, apply it more deeply, or more widely, or with more of whatever
 makes it work.
 *Control*: it must not give back the wins it was built on. If the
 amplification is targeted at a slice, it must also beat applying the same

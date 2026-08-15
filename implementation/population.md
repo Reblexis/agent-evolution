@@ -25,8 +25,8 @@ metadata.
 ```
 
 `_api` is the only thing an agent may import from the project. It exposes
-the task type, the readers that fetch tasks, and — for a project that acts
-in the world — the execution path. It does not expose model access, prompt
+the task type, the readers that fetch tasks, and, for a project that acts
+in the world, the execution path. It does not expose model access, prompt
 helpers, or anything else an agent could differ in: those belong inside
 agents, where the differences are visible.
 
@@ -73,7 +73,7 @@ second module beside the entry point are all part of what produced the
 number, so all of them are hashed. Three things are excluded, because they
 are written after the run rather than being part of it: `RECORD.md`,
 `node.json`, and `analysis/`. So is any nested folder that is an agent in
-its own right — a child is not part of its parent.
+its own right, a child is not part of its parent.
 
 `analysis/` in particular has to be excluded rather than merely allowed to
 change, because it compares an agent against the rest of the population and
@@ -83,7 +83,7 @@ analysis, and none of that is an edit to the older agent.
 The project's runner must hash agents this exact way. If the runner and the
 checker hash differently, the check is asking a different question than the
 freeze answered, and the visible symptom is a false "edited after it was
-scored" on agents nobody touched — which is how this rule got written.
+scored" on agents nobody touched, which is how this rule got written.
 Projects should carry a test that the two agree.
 
 The rule exists because a number that does not refer to an exact
@@ -93,11 +93,11 @@ code that no longer exists.
 
 ## analysis/
 
-`tasks.jsonl` — one row per task in the board, written by the runner: the
+`tasks.jsonl`, one row per task in the board, written by the runner: the
 task id, what the agent produced, what the score was, what it cost, and any
 trace the agent chose to record. This file is data; it is not interpreted.
 
-`STRENGTHS.md` — where this agent does well, where it does badly, and the
+`STRENGTHS.md`, where this agent does well, where it does badly, and the
 most general reason for each, written by a researcher who read the cases.
 Each claim names the tasks that support it. This document is the input to
 every rational operator: an operator that has not read it is guessing.

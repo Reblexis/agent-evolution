@@ -6,8 +6,8 @@ human sees the state, and how requests reach the human.
 ## Dispatch
 
 The orchestrator writes a mission as one file into the project's queue.
-A slot process pops the oldest file, moves it to the done directory — the
-move is the claim, and it is atomic — and runs it as a headless agent with
+A slot process pops the oldest file, moves it to the done directory, the
+move is the claim, and it is atomic, and runs it as a headless agent with
 the file's contents as the whole prompt. Logs land under the project's log
 directory, named by slot, mission and timestamp. Slots run in parallel and
 poll when the queue is empty.
@@ -43,12 +43,12 @@ place should not be dispatched.
 
 Four files, all append-only, all read before any work starts:
 
-- **claims** — who is running what, right now, with what resources
-- **kills** — what died today, published the moment it is measured, so a
+- **claims**, who is running what, right now, with what resources
+- **kills**, what died today, published the moment it is measured, so a
   parallel researcher does not buy it again this afternoon
-- **graveyard** — what is dead for good, with the number and the cause, and
+- **graveyard**, what is dead for good, with the number and the cause, and
   the condition under which it could be revisited
-- **issues** — the open failure modes of the system, each with its state,
+- **issues**, the open failure modes of the system, each with its state,
   its evidence, and what has been attempted against it
 
 Findings live one file per mission and are never rewritten.

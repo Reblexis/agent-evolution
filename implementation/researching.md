@@ -58,8 +58,8 @@ typed from memory are wrong often enough that the rule pays for itself.
 An absolute score belongs to the board it was measured on. Only paired
 contrasts on the same board compare.
 
-When an instrument is involved — a meter, a detector, a cost model, a
-splitter — the instrument is audited before its output is believed. Several
+When an instrument is involved, a meter, a detector, a cost model, a
+splitter, the instrument is audited before its output is believed. Several
 of the most expensive corrections in the first project were instrument
 errors that survived because the number they produced looked plausible.
 
@@ -90,9 +90,9 @@ Below the project's reserve, paid work stops and free work continues.
 
 ## Asking the human
 
-A researcher that needs something only the human can provide — access, a
+A researcher that needs something only the human can provide, access, a
 credential, an account, money beyond its budget, a decision that is not
-technical — files a request in the project where the human will see it, and
+technical, files a request in the project where the human will see it, and
 stops.
 
 The request states what is wanted, why, what it unblocks, and what it costs.
