@@ -32,9 +32,18 @@ def main():
         elif not n["difference"]:
             errs.append("%s: SPEC.md states no difference from its parents"
                         % rel)
-        if not lib.impl_path(n["dir"]):
-            errs.append("%s: no implementation (%s)"
-                        % (rel, "/".join(lib.IMPL_NAMES)))
+        if not lib.impl_path(n["dir"], cfg):
+            # A closed agent may be a record rather than code: something
+            # tried and killed before this population existed, kept so the
+            # next person does not buy the same null. It must then carry the
+            # record that justifies it.
+            if n["status"] == "closed" and not n.get("score"):
+                if not os.path.exists(os.path.join(n["dir"], "RECORD.md")):
+                    errs.append("%s: closed with no implementation and no "
+                                "record of why" % rel)
+            else:
+                errs.append("%s: no implementation (%s)"
+                            % (rel, "/".join(lib.IMPL_NAMES)))
         for p in n["parents"]:
             if p not in nodes:
                 errs.append("%s: parent %r does not exist" % (rel, p))
