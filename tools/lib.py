@@ -36,16 +36,18 @@ def find_project(start="."):
         d = parent
 
 
-def impl_path(node_dir):
-    for n in IMPL_NAMES:
+def impl_path(node_dir, cfg=None):
+    names = ([cfg["implName"]] if cfg and cfg.get("implName") else []) \
+        + list(IMPL_NAMES)
+    for n in names:
         p = os.path.join(node_dir, n)
         if os.path.exists(p):
             return p
     return None
 
 
-def impl_hash(node_dir):
-    p = impl_path(node_dir)
+def impl_hash(node_dir, cfg=None):
+    p = impl_path(node_dir, cfg)
     if not p:
         return None
     return hashlib.sha256(open(p, "rb").read()).hexdigest()
@@ -82,19 +84,26 @@ def load_population(root, cfg):
         parent_dir = os.path.dirname(rel)
         parents = list(meta.get("parents") or
                        ([parent_dir] if parent_dir and parent_dir != "." else []))
-        score = None
-        sp = os.path.join(scores_dir, rel.replace(os.sep, "__") + ".json")
-        if os.path.exists(sp):
-            try:
-                score = json.load(open(sp))
-            except ValueError:
-                score = None
+        # one score per board: show the newest, keep the rest
+        score, history = None, []
+        key = rel.replace(os.sep, "__")
+        if os.path.isdir(scores_dir):
+            for fn in sorted(os.listdir(scores_dir)):
+                if not fn.startswith(key + "@") or fn.endswith(".preds.json"):
+                    continue
+                try:
+                    history.append(json.load(open(os.path.join(scores_dir,
+                                                               fn))))
+                except ValueError:
+                    continue
+            if history:
+                score = sorted(history, key=lambda r: r.get("at") or "")[-1]
         nodes[rel] = {"path": rel, "dir": dirpath, "name": name,
                       "difference": diff, "parents": parents,
                       "operator": meta.get("operator"),
                       "status": meta.get("status", "draft"),
                       "frozen": meta.get("frozen"), "score": score,
-                      "meta": meta}
+                      "history": history, "meta": meta}
     return nodes
 
 
@@ -114,7 +123,5 @@ def load_asks(root, cfg):
                 k = k.strip().lower()
                 if k in ("what", "why", "unblocks", "cost", "status"):
                     rec[k] = v.strip()
-            if line.strip() == "":
-                continue
         out.append(rec)
     return out

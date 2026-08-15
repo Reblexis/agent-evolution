@@ -16,9 +16,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lib  # noqa: E402
 
 OPERATORS = ("autopsy", "rational-ablation", "rational-substitution",
-             "rational-crossover", "booster", "rational-graft",
-             "rational-specialization", "rational-restart", "step-back",
-             "first-principles", "crazy-new-thing", "root")
+             "rational-crossover", "booster", "cheaper-and-better",
+             "rational-graft", "rational-specialization", "rational-restart",
+             "step-back", "first-principles", "crazy-new-thing", "root")
 
 
 def main():
@@ -27,9 +27,9 @@ def main():
     out = []
     i = 0
     while i < len(args):
-        if args[i] == "--operator":
+        if args[i] == "--operator" and i + 1 < len(args):
             op = args[i + 1]; i += 2
-        elif args[i] == "--also-parent":
+        elif args[i] == "--also-parent" and i + 1 < len(args):
             also.append(args[i + 1]); i += 2
         else:
             out.append(args[i]); i += 1
@@ -47,10 +47,10 @@ def main():
     if os.path.exists(d):
         print("%s already exists" % d)
         return 1
-    if parent not in (".", "") and not os.path.exists(
-            os.path.join(pop, parent, "node.json")):
-        print("parent %s is not an agent" % parent)
-        return 1
+    for q in ([parent] if parent not in (".", "") else []) + also:
+        if not os.path.exists(os.path.join(pop, q, "node.json")):
+            print("parent %s is not an agent" % q)
+            return 1
 
     os.makedirs(os.path.join(d, "analysis"))
     parents = ([parent] if parent not in (".", "") else []) + also

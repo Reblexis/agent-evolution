@@ -17,10 +17,22 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lib  # noqa: E402
 
-COL = {"champion": "#1baf7a", "candidate": "#eda100", "draft": "#2a78d6",
-       "closed": "#b25757"}
+COL = {"champion": "#1baf7a", "candidate": "#eda100", "scored": "#5b8dd6",
+       "draft": "#8a8a8a", "closed": "#b25757"}
 WORD = {"champion": "in use", "candidate": "being tested",
-        "draft": "not run yet", "closed": "closed"}
+        "scored": "measured", "draft": "not run yet", "closed": "closed"}
+
+
+def status_of(n):
+    """An agent that has a score is measured, whatever its file says.
+
+    Nothing writes status back after a run, so reading it raw showed five
+    scored agents as "not run yet".
+    """
+    st = n.get("status") or "draft"
+    if st == "draft" and n.get("score"):
+        return "scored"
+    return st
 
 
 def esc(s):
@@ -81,6 +93,7 @@ def render(root, cfg, nodes, asks):
            'style="width:100%%;height:auto;font:13px system-ui,sans-serif">'
            % (W, H)]
     for rel, n in sorted(nodes.items()):
+        op = n.get("operator")
         for i, p in enumerate(n["parents"]):
             if p not in nodes:
                 continue
@@ -90,25 +103,47 @@ def render(root, cfg, nodes, asks):
                        'stroke="var(--line)" stroke-width="1.6"%s/>'
                        % (x1, y1, x1 + COLW * 0.35, y1,
                           x2 - COLW * 0.35, y2, x2, y2, dash))
+            # the move that produced the child, written on the edge that
+            # produced it: the graph should say how each agent came to be
+            if op and op != "root" and i == 0:
+                mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0 - 4
+                svg.append('<text x="%g" y="%g" fill="var(--muted)" '
+                           'font-size="10.5" text-anchor="middle">%s</text>'
+                           % (mx, my, esc(op)))
     for rel, n in sorted(nodes.items()):
-        c = COL.get(n["status"], "#8a8a8a")
+        st = status_of(n)
+        c = COL.get(st, "#8a8a8a")
         s = n.get("score") or {}
         val = s.get("score")
         lbl = n["name"]
-        num = ("  %.1f" % val) if isinstance(val, (int, float)) else ""
+        num = ("%.1f" % val) if isinstance(val, (int, float)) else ""
+        lo, hi = s.get("lo"), s.get("hi")
+        line = "not scored yet"
+        if isinstance(val, (int, float)):
+            line = "%s %.1f" % (s.get("scoreIs") or "score", val)
+            if isinstance(lo, (int, float)) and isinstance(hi, (int, float)):
+                line += " [%.1f, %.1f]" % (lo, hi)
+            line += " on %s" % (s.get("board") or "?")
+            if s.get("answered") is not None:
+                line += ", answered %s of %s" % (s["answered"], s.get("of"))
+            bc = (s.get("bestConstant") or {}).get("price")
+            if bc is not None:
+                line += "\nbest constant on that board: %.1f" % bc
+            if s.get("costPerMarket"):
+                line += "\ncost: $%.5f a market, %ss in total" % (
+                    s["costPerMarket"], s.get("seconds"))
+            elif s.get("seconds") is not None:
+                line += "\ncost: no gate spend, %ss" % s.get("seconds")
         tip = "%s\n%s\n%s" % (
-            n["name"], n["difference"] or "(no difference stated)",
-            ("%s %.1f [%.1f, %.1f] on %d tasks / %d clusters"
-             % (metric.get("name", "score"), val, s.get("lo", float("nan")),
-                s.get("hi", float("nan")), s.get("n", 0), s.get("clusters", 0))
-             if isinstance(val, (int, float)) else "not scored yet"))
+            n["name"], n["difference"] or "(no difference stated)", line)
         if n.get("operator") and n["operator"] != "root":
             tip += "\nmade by: %s" % n["operator"]
         svg.append('<circle cx="%g" cy="%g" r="6.5" fill="%s"><title>%s'
                    '</title></circle>' % (X(rel), Y(rel), c, esc(tip)))
         svg.append('<text x="%g" y="%g" fill="var(--fg)" '
                    'dominant-baseline="middle"><title>%s</title>%s'
-                   '<tspan fill="%s" font-weight="600">%s</tspan></text>'
+                   '<tspan dx="8" fill="%s" font-weight="600">%s</tspan>'
+                   '</text>'
                    % (X(rel) + 12, Y(rel), esc(tip), esc(lbl), c, esc(num)))
     svg.append("</svg>")
 

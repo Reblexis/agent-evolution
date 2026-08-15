@@ -76,6 +76,24 @@ makes it work.
 amplification is targeted at a slice, it must also beat applying the same
 amplification everywhere.
 
+### cheaper-and-better
+
+*Input*: this agent's per-task costs beside its per-task results.
+*Procedure*: work out where the money and the minutes actually go, and
+which of that spending is buying anything. Then build the version that
+costs less and is at least as good - fewer calls, a smaller model where the
+task does not need a larger one, work skipped on the tasks it never changed,
+whatever the cost table says.
+*Control*: the child must not be worse. "At least as good" is measured
+against the parent's own noise band, not against zero, because a cheaper
+agent that is genuinely equal will still score a little differently every
+run. Report the new cost per task next to the old one; a saving that cannot
+be stated as a number was not measured.
+
+Cost is a real axis of the metric, not an afterthought. An agent that
+matches the incumbent for a tenth of the spend can be run on ten times the
+tasks, and that is usually worth more than a small accuracy gain.
+
 ### rational-graft
 
 *Input*: a mechanism identified as another agent's strength, and this

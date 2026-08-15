@@ -58,19 +58,30 @@ def main():
     for rel in nodes:
         walk(rel, [])
 
-    # cross-agent imports: an agent may import the api and stdlib, nothing else
+    # An agent may import the project api and the standard library, and
+    # nothing from another agent. This is a lint, not a sandbox: it reads
+    # the entry point only, and cannot see a dynamic import. It resolves
+    # against real paths rather than bare names, because an agent slugged
+    # "random" would otherwise make every sibling that imports random look
+    # like a violation.
     api = os.path.basename(cfg.get("api", "_api"))
-    slugs = {os.path.basename(r) for r in nodes}
+    pop_root = os.path.join(root, cfg["population"])
     imp = re.compile(r"^\s*(?:from|import)\s+([A-Za-z_][\w.]*)", re.M)
     for rel, n in sorted(nodes.items()):
-        p = lib.impl_path(n["dir"])
+        p = lib.impl_path(n["dir"], cfg)
         if not p or not p.endswith(".py"):
             continue
-        src = open(p).read()
-        for mod in imp.findall(src):
-            top = mod.split(".")[0].replace("-", "_")
-            if top in {s.replace("-", "_") for s in slugs} and top != api:
-                errs.append("%s: imports another agent (%s)" % (rel, mod))
+        for mod in imp.findall(open(p).read()):
+            top = mod.split(".")[0]
+            if top == api:
+                continue
+            for other, o in nodes.items():
+                if other == rel:
+                    continue
+                if os.path.basename(o["dir"]).replace("-", "_") == top and \
+                        os.path.exists(os.path.join(o["dir"], "__init__.py")):
+                    errs.append("%s: imports another agent (%s)"
+                                % (rel, other))
 
     # an agent is frozen by its result: the score file records the hash of
     # the code that produced it, and that file is written once
@@ -79,7 +90,7 @@ def main():
                or (n.get("frozen") or {}).get("hash"))
         if not was:
             continue
-        h = lib.impl_hash(n["dir"])
+        h = lib.impl_hash(n["dir"], cfg)
         if h != was:
             errs.append("%s: EDITED AFTER IT WAS SCORED - implementation "
                         "hashes to %s, scored with %s. Make a child instead."
