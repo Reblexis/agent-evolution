@@ -1,0 +1,154 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent evolution</title><style>
+:root{color-scheme:light dark;--fg:#1b1b1b;--muted:#666;--line:#ddd}
+@media (prefers-color-scheme:dark){:root{--fg:#e6e6e6;--muted:#9a9a9a;--line:#333}}
+body{font:16px/1.62 system-ui,sans-serif;color:var(--fg);background:Canvas;
+max-width:44rem;margin:3rem auto;padding:0 1.1rem}
+h1{font-size:26px} h2{font-size:19px;margin-top:2.4rem;
+border-top:1px solid var(--line);padding-top:1.2rem}
+nav{margin:1.4rem 0 2rem;color:var(--muted);font-size:14.5px}
+nav a{color:inherit;margin-right:1rem;white-space:nowrap}
+p{margin:.85rem 0} a{color:inherit}
+footer{margin-top:3rem;color:var(--muted);font-size:13.5px;
+border-top:1px solid var(--line);padding-top:1rem}
+</style></head><body>
+<h1>Agent evolution</h1>
+<nav><a href="#the-population">The population</a> <a href="#difference-stated">Difference, stated</a> <a href="#evolution">Evolution</a> <a href="#the-metric">The metric</a> <a href="#selection">Selection</a> <a href="#researchers">Researchers</a> <a href="#what-the-human-sees">What the human sees</a></nav>
+<p>
+This repo describes a way to make an AI agent better at a measurable thing,
+by evolving a population of agents against a metric and keeping the whole
+attempt legible to a human.
+</p>
+<p>
+Everything else in the repo is the implementation of that description. Where
+the implementation contradicts this document, the implementation is wrong.
+A project that adopts this practice supplies what only it can supply: the
+task population, the metric, and the agents. Nothing here knows what the
+agents do.
+</p>
+<h2 id="the-population">The population</h2>
+<p>
+A project holds a population of agents. Each agent is one folder. The folder
+holds a complete, standalone implementation, a short statement of how the
+agent differs from the agents it descends from, its own analysis of where it
+succeeds and fails, and its record of what has been measured about it.
+</p>
+<p>
+Agents are not built from shared parts. An agent may reuse only the
+project&#x27;s interface to the outside world; everything that makes it the agent
+it is lives in its own folder and is readable there in full. Two agents that
+differ by one idea duplicate everything else, and that duplication is the
+price of being able to read any single agent and know what it does.
+</p>
+<p>
+Descent is recorded, and an agent may descend from several. The population
+is therefore a directed graph, not a tree, and a mechanism taken from one
+agent and applied to another is an edge from both.
+</p>
+<p>
+An agent is frozen the moment it has been evaluated. Its implementation, its
+statement and its analysis are never edited again; a correction is an
+erratum in its record, and a change of behaviour is a new agent. What
+enforces this is a hash of the implementation stored when the agent was
+frozen, checked mechanically. Without this rule a published number stops
+referring to anything.
+</p>
+<h2 id="difference-stated">Difference, stated</h2>
+<p>
+An agent&#x27;s statement says only how it differs from its parents, in plain
+language, in as few sentences as the difference takes. It does not restate
+what the parents already do, and it does not describe the implementation. A
+reader walking a path from the root to any agent reads the whole design of
+that agent as a sequence of differences.
+</p>
+<p>
+The root of a population is the simplest thing that performs the task at
+all.
+</p>
+<h2 id="evolution">Evolution</h2>
+<p>
+A new agent exists because an operator was applied to existing agents. The
+operator is recorded, so a project can measure which of its operators
+produce winners and spend accordingly.
+</p>
+<p>
+Operators are rational: an operator reads per-agent, per-task results, names
+the most general reason behind a pattern of successes or failures, and acts
+on that reason. Blind variation is not an operator here. The reason an
+operator acts on must be stated as a condition that can be checked
+mechanically, because a reason that exists only as an instruction to a model
+is not a reason the population can inherit.
+</p>
+<p>
+One operator is deliberately outside this rule: the population must be able
+to try something that resembles nothing already in it. Its only constraint
+is that constraint.
+</p>
+<h2 id="the-metric">The metric</h2>
+<p>
+A project supplies a metric contract: a frozen population of tasks, a score
+that decides, and the controls a claim must pass.
+</p>
+<p>
+The score that decides is measured against ground truth. A score measured
+against something that is itself an estimate of the truth measures agreement
+with that estimator, and a population evolved against it converges on the
+estimator rather than on the truth. A project may keep such a score as a
+cheap screen, and if it does, it says so wherever the number appears.
+</p>
+<p>
+The task population is frozen before it is used, and it is frozen in a state
+that cannot leak the answer: if the answer to a task already exists in the
+world, an agent that searches will find it, and the score becomes a measure
+of searching for answers rather than of producing them.
+</p>
+<p>
+Two controls are mandatory in every claim. The first is the population&#x27;s own
+noise: run the incumbent against itself and measure the spread, because a
+threshold inside that spread cannot be met by any real effect. The second is
+the constant: whatever the simplest rule is that ignores the input entirely,
+a claim must beat it, because most apparent skill is a marginal in disguise.
+</p>
+<h2 id="selection">Selection</h2>
+<p>
+An agent replaces the incumbent only on the deciding score, having passed
+the controls, without losing the incumbent&#x27;s successes beyond a bound
+declared in advance.
+</p>
+<p>
+Agents that lose stay in the population, marked, carrying their number and
+the reason they failed. The record of what does not work is the more
+valuable half of the population, because it is what stops the next attempt
+from buying the same null again.
+</p>
+<p>
+A lineage is worked while it has a stated live reason to be worked. When
+that reason is gone, the lineage is closed and its budget returns. Several
+lineages are kept alive on purpose: a population that has collapsed to a
+single agent has stopped evolving.
+</p>
+<h2 id="researchers">Researchers</h2>
+<p>
+Agents in this population are built by AI research agents working in
+parallel, each on one assignment, each running to completion and stopping.
+The rules they work under, and the mechanics of dispatching them, are the
+implementation of this document.
+</p>
+<p>
+A researcher that needs something only the human can provide — access, a
+credential, money beyond its budget, a decision — writes the request into
+the project where the human will see it, and stops. It does not wait, and it
+does not proceed without it.
+</p>
+<h2 id="what-the-human-sees">What the human sees</h2>
+<p>
+The state of the population is on disk in the project, and a human-readable
+rendering is generated from it deterministically, with no model in the
+generation path. The rendering shows the graph, what each agent is, how well
+it does, and what the researchers are waiting for. It is generated, never
+maintained: anything a human would have to keep in sync by hand will fall
+out of sync.
+</p>
+<footer>The human-readable representation of <code>./docs</code>, generated
+from it. The docs win.</footer></body></html>

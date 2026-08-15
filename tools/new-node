@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Scaffold an agent folder.
+
+  new-node <parent-path> <slug> --operator <op> [--also-parent <path>]...
+
+Writes SPEC.md, node.json, an empty implementation, analysis/ and RECORD.md
+under <population>/<parent-path>/<slug>. Refuses to touch anything that
+exists. Fill in SPEC.md before writing code: the difference comes first.
+"""
+import json
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import lib  # noqa: E402
+
+OPERATORS = ("autopsy", "rational-ablation", "rational-substitution",
+             "rational-crossover", "booster", "rational-graft",
+             "rational-specialization", "rational-restart", "step-back",
+             "first-principles", "crazy-new-thing", "root")
+
+
+def main():
+    args = [a for a in sys.argv[1:]]
+    op, also = None, []
+    out = []
+    i = 0
+    while i < len(args):
+        if args[i] == "--operator":
+            op = args[i + 1]; i += 2
+        elif args[i] == "--also-parent":
+            also.append(args[i + 1]); i += 2
+        else:
+            out.append(args[i]); i += 1
+    if len(out) != 2 or not op:
+        print(__doc__)
+        return 2
+    if op not in OPERATORS:
+        print("operator must be one of: %s" % ", ".join(OPERATORS))
+        return 2
+    parent, slug = out
+    root, cfg = lib.find_project(".")
+    pop = os.path.join(root, cfg["population"])
+    d = os.path.join(pop, parent, slug) if parent not in (".", "") \
+        else os.path.join(pop, slug)
+    if os.path.exists(d):
+        print("%s already exists" % d)
+        return 1
+    if parent not in (".", "") and not os.path.exists(
+            os.path.join(pop, parent, "node.json")):
+        print("parent %s is not an agent" % parent)
+        return 1
+
+    os.makedirs(os.path.join(d, "analysis"))
+    parents = ([parent] if parent not in (".", "") else []) + also
+    open(os.path.join(d, "SPEC.md"), "w").write(
+        "# %s\n\ndiffers: \n" % slug.replace("-", " "))
+    json.dump({"parents": parents, "operator": op, "status": "draft",
+               "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())},
+              open(os.path.join(d, "node.json"), "w"), indent=1)
+    open(os.path.join(d, "RECORD.md"), "w").write(
+        "# Record\n\nNothing measured yet.\n")
+    open(os.path.join(d, "analysis", "STRENGTHS.md"), "w").write(
+        "# Strengths and weaknesses\n\nNot written yet. This is filled in "
+        "after the agent has run, by someone who read the cases.\n")
+    impl = os.path.join(d, cfg.get("implName", "agent.py"))
+    open(impl, "w").write(
+        '"""%s\n\nSee SPEC.md for how this differs from its parents.\n'
+        'This is a complete, standalone implementation: it may import the\n'
+        'project api and nothing else from this repo.\n"""\n' % slug)
+    print("created %s" % os.path.relpath(d, root))
+    print("write SPEC.md first, then %s" % os.path.basename(impl))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

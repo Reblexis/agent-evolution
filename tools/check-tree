@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""Validate a population. Fails; does not warn.
+
+  check-tree [project-dir]
+
+Checks, in order of how badly they break the record:
+  1. every agent has a spec, an implementation and node.json
+  2. every declared parent resolves
+  3. no cycles in the parent graph
+  4. no agent imports another agent
+  5. every scored agent still hashes to its frozen hash
+"""
+import os
+import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import lib  # noqa: E402
+
+
+def main():
+    root, cfg = lib.find_project(sys.argv[1] if len(sys.argv) > 1 else ".")
+    nodes = lib.load_population(root, cfg)
+    errs = []
+
+    if not nodes:
+        errs.append("population %s has no agents" % cfg["population"])
+
+    for rel, n in sorted(nodes.items()):
+        if not os.path.exists(os.path.join(n["dir"], "SPEC.md")):
+            errs.append("%s: no SPEC.md" % rel)
+        elif not n["difference"]:
+            errs.append("%s: SPEC.md states no difference from its parents"
+                        % rel)
+        if not lib.impl_path(n["dir"]):
+            errs.append("%s: no implementation (%s)"
+                        % (rel, "/".join(lib.IMPL_NAMES)))
+        for p in n["parents"]:
+            if p not in nodes:
+                errs.append("%s: parent %r does not exist" % (rel, p))
+
+    # cycles
+    seen, stack = set(), set()
+
+    def walk(rel, chain):
+        if rel in stack:
+            errs.append("cycle: %s" % " -> ".join(chain + [rel]))
+            return
+        if rel in seen:
+            return
+        stack.add(rel)
+        for p in nodes.get(rel, {}).get("parents", []):
+            if p in nodes:
+                walk(p, chain + [rel])
+        stack.discard(rel)
+        seen.add(rel)
+
+    for rel in nodes:
+        walk(rel, [])
+
+    # cross-agent imports: an agent may import the api and stdlib, nothing else
+    api = os.path.basename(cfg.get("api", "_api"))
+    slugs = {os.path.basename(r) for r in nodes}
+    imp = re.compile(r"^\s*(?:from|import)\s+([A-Za-z_][\w.]*)", re.M)
+    for rel, n in sorted(nodes.items()):
+        p = lib.impl_path(n["dir"])
+        if not p or not p.endswith(".py"):
+            continue
+        src = open(p).read()
+        for mod in imp.findall(src):
+            top = mod.split(".")[0].replace("-", "_")
+            if top in {s.replace("-", "_") for s in slugs} and top != api:
+                errs.append("%s: imports another agent (%s)" % (rel, mod))
+
+    # frozen hashes
+    for rel, n in sorted(nodes.items()):
+        fr = n.get("frozen") or {}
+        if not fr.get("hash"):
+            if n["score"] is not None:
+                errs.append("%s: has a score but was never frozen" % rel)
+            continue
+        h = lib.impl_hash(n["dir"])
+        if h != fr["hash"]:
+            errs.append("%s: EDITED AFTER FREEZE - implementation hashes to "
+                        "%s, frozen at %s. Make a child instead."
+                        % (rel, (h or "none")[:12], fr["hash"][:12]))
+
+    if errs:
+        print("check-tree: %d problem(s)" % len(errs))
+        for e in errs:
+            print("  " + e)
+        return 1
+    print("check-tree: %d agents, all good" % len(nodes))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

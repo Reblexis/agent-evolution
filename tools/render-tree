@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""Render a population as one page: the graph, and what the humans are
+asked for. Deterministic, no model in the path, no hand-editing.
+
+  render-tree [project-dir] [-o out.html] [--stdout]
+
+Score files (one per agent, named by its path with / replaced by __) are
+whatever the project's runner writes, read for these keys:
+  score, lo, hi, board, n, clusters, screen, cost, at
+"""
+import html
+import json
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import lib  # noqa: E402
+
+COL = {"champion": "#1baf7a", "candidate": "#eda100", "draft": "#2a78d6",
+       "closed": "#b25757"}
+WORD = {"champion": "in use", "candidate": "being tested",
+        "draft": "not run yet", "closed": "closed"}
+
+
+def esc(s):
+    return html.escape(str(s if s is not None else ""), quote=True)
+
+
+def layout(nodes):
+    """Column by depth from a root, row by depth-first order. Deterministic."""
+    depth = {}
+
+    def d(rel, seen=()):
+        if rel in depth:
+            return depth[rel]
+        if rel in seen:
+            return 0
+        ps = [p for p in nodes[rel]["parents"] if p in nodes]
+        depth[rel] = 0 if not ps else 1 + max(d(p, seen + (rel,)) for p in ps)
+        return depth[rel]
+
+    for rel in nodes:
+        d(rel)
+    kids = {rel: [] for rel in nodes}
+    roots = []
+    for rel, n in nodes.items():
+        prim = n["parents"][0] if n["parents"] and n["parents"][0] in nodes \
+            else None
+        (kids[prim] if prim else roots).append(rel)
+    for k in kids:
+        kids[k].sort()
+    roots.sort()
+    order, seen = [], set()
+
+    def walk(rel):
+        if rel in seen:
+            return
+        seen.add(rel)
+        order.append(rel)
+        for c in kids[rel]:
+            walk(c)
+
+    for r in roots:
+        walk(r)
+    for rel in sorted(nodes):
+        walk(rel)
+    return depth, {rel: i for i, rel in enumerate(order)}
+
+
+def render(root, cfg, nodes, asks):
+    metric = cfg.get("metric", {})
+    lower = metric.get("lowerIsBetter", True)
+    depth, row = layout(nodes)
+    LANE, COLW, PADL, PADT = 34, 210, 20, 34
+    W = PADL + COLW * (max(depth.values()) + 1) + 120 if nodes else 600
+    H = PADT * 2 + LANE * (len(nodes) or 1)
+    X = lambda rel: PADL + COLW * depth[rel]
+    Y = lambda rel: PADT + LANE * row[rel] + LANE / 2
+    svg = ['<svg viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg" '
+           'style="width:100%%;height:auto;font:13px system-ui,sans-serif">'
+           % (W, H)]
+    for rel, n in sorted(nodes.items()):
+        for i, p in enumerate(n["parents"]):
+            if p not in nodes:
+                continue
+            x1, y1, x2, y2 = X(p) + 7, Y(p), X(rel) - 7, Y(rel)
+            dash = ' stroke-dasharray="4 4"' if i else ""
+            svg.append('<path d="M %g %g C %g %g, %g %g, %g %g" fill="none" '
+                       'stroke="var(--line)" stroke-width="1.6"%s/>'
+                       % (x1, y1, x1 + COLW * 0.35, y1,
+                          x2 - COLW * 0.35, y2, x2, y2, dash))
+    for rel, n in sorted(nodes.items()):
+        c = COL.get(n["status"], "#8a8a8a")
+        s = n.get("score") or {}
+        val = s.get("score")
+        lbl = n["name"]
+        num = ("  %.1f" % val) if isinstance(val, (int, float)) else ""
+        tip = "%s\n%s\n%s" % (
+            n["name"], n["difference"] or "(no difference stated)",
+            ("%s %.1f [%.1f, %.1f] on %d tasks / %d clusters"
+             % (metric.get("name", "score"), val, s.get("lo", float("nan")),
+                s.get("hi", float("nan")), s.get("n", 0), s.get("clusters", 0))
+             if isinstance(val, (int, float)) else "not scored yet"))
+        if n.get("operator") and n["operator"] != "root":
+            tip += "\nmade by: %s" % n["operator"]
+        svg.append('<circle cx="%g" cy="%g" r="6.5" fill="%s"><title>%s'
+                   '</title></circle>' % (X(rel), Y(rel), c, esc(tip)))
+        svg.append('<text x="%g" y="%g" fill="var(--fg)" '
+                   'dominant-baseline="middle"><title>%s</title>%s'
+                   '<tspan fill="%s" font-weight="600">%s</tspan></text>'
+                   % (X(rel) + 12, Y(rel), esc(tip), esc(lbl), c, esc(num)))
+    svg.append("</svg>")
+
+    open_asks = [a for a in asks if a.get("status", "open") == "open"]
+    asks_html = "".join(
+        '<li><b>%s</b> — %s <span class="q">unblocks %s</span></li>'
+        % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
+           esc(a.get("unblocks", "")))
+        for a in open_asks) or "<li>Nothing right now.</li>"
+
+    screen = metric.get("screen")
+    note = ("%s, lower is better. " if lower else "%s, higher is better. ") \
+        % esc(metric.get("name", "score"))
+    if screen:
+        note += "The quick check (%s) is only a check that an agent is not " \
+                "broken; it never decides anything." % esc(screen)
+
+    return """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>%s</title><style>
+:root{color-scheme:light dark;--fg:#1b1b1b;--muted:#666;--line:#ccc;
+--card:#fafafa}
+@media (prefers-color-scheme:dark){:root{--fg:#e6e6e6;--muted:#9a9a9a;
+--line:#3a3a3a;--card:#191919}}
+body{font:15.5px/1.5 system-ui,sans-serif;color:var(--fg);background:Canvas;
+max-width:1000px;margin:2.5rem auto;padding:0 1rem}
+h1{font-size:22px;margin:0 0 .2rem} h2{font-size:17px;margin:2rem 0 .4rem}
+.sub{color:var(--muted);margin-bottom:1.2rem}
+.box{border:1px solid var(--line);border-radius:12px;background:var(--card);
+padding:1rem;overflow-x:auto}
+ul{margin:.3rem 0;padding-left:1.2rem} li{margin:.35rem 0}
+.q{color:var(--muted)}
+#tip{position:fixed;pointer-events:none;background:var(--card);
+border:1px solid var(--line);border-radius:8px;padding:8px 12px;
+font-size:13px;max-width:380px;display:none;z-index:9;white-space:pre-line;
+line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+</style></head><body><div id="tip"></div>
+<h1>%s</h1>
+<div class="sub">%s Updated %s.</div>
+<div class="box">%s</div>
+<h2>Waiting on you</h2>
+<div class="box"><ul>%s</ul></div>
+<script>
+(function(){var t=document.getElementById('tip');
+document.addEventListener('mousemove',function(e){
+ var el=e.target.closest&&e.target.closest('circle,text');
+ var ti=el&&el.querySelector&&el.querySelector('title');
+ if(ti&&ti.textContent){t.textContent=ti.textContent;t.style.display='block';
+  t.style.left=Math.min(e.clientX+14,innerWidth-400)+'px';
+  t.style.top=(e.clientY+14)+'px';}else{t.style.display='none';}});
+})();
+</script></body></html>""" % (
+        esc(cfg.get("name", "population")), esc(cfg.get("title")
+                                                or cfg.get("name", "")),
+        note, time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()),
+        "".join(svg), asks_html)
+
+
+def main():
+    args = sys.argv[1:]
+    out = None
+    if "-o" in args:
+        i = args.index("-o")
+        out = args[i + 1]
+        del args[i:i + 2]
+    to_stdout = "--stdout" in args
+    args = [a for a in args if a != "--stdout"]
+    root, cfg = lib.find_project(args[0] if args else ".")
+    nodes = lib.load_population(root, cfg)
+    page = render(root, cfg, nodes, lib.load_asks(root, cfg))
+    if to_stdout or not out:
+        if to_stdout:
+            print(page)
+            return 0
+        out = os.path.join(root, cfg.get("page", "population.html"))
+    with open(out, "w") as f:
+        f.write(page)
+    print("wrote %s (%d agents, %d bytes)" % (out, len(nodes), len(page)))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
