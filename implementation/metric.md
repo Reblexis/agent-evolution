@@ -60,6 +60,32 @@ freeze and the run is contaminated even if the board looks fine. Boards
 record when each task's underlying event occurs, and the runner excludes
 tasks whose event predates the run.
 
+## A board is a round, not a standing exam
+
+The world moves while a board sits. An agent that answers a week after the
+board was frozen is not smarter than one that answered the same hour: it
+simply knows more, and it is being scored against a target that has since
+stopped describing anything. Both effects flatter the latecomer, and
+neither is skill.
+
+So a board carries a deadline as well as a freeze time, and agents compared
+against each other answer inside it. After the deadline the board is
+closed: a new agent means a new board, and the agents worth comparing it
+against are re-run on that board. Scoring an agent on a closed board is
+allowed but marked, and a marked score never decides a promotion.
+
+How long a window can be depends on the venue and is measurable rather than
+a matter of opinion: sample the board and see how far its prices have moved
+since the freeze. On the first board here, an hour after freezing, the
+median market had not moved at all and the largest move was half a point.
+Every run records that measurement, so a score taken against a drifted
+board says so on its face.
+
+The score measured against ground truth does not decay this way - what
+happened is what happened - but the fairness problem remains, because a
+later agent forecasts with more of the future already visible. The deadline
+is what makes the comparison mean something, on both scores.
+
 ## The two mandatory controls
 
 **The population's own noise.** Before a threshold is declared, run the
