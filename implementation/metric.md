@@ -160,6 +160,38 @@ when a mechanism has been reasoned out to explain it. A convincing
 explanation of a one-board effect is the most persuasive thing a project
 produces and the least reliable.
 
+## When an aggregate reverses, look at the slices before believing anything
+
+Two comparisons in the first project reversed between boards. They look
+identical in the summary table and they are not the same thing at all.
+
+**One was composition.** An agent that pulls its answers toward a constant
+scored better than its base on the first board and worse on the second.
+Sliced by how likely the task was, the pattern is the same on both boards
+to within a point: the pull helps in the middle and hurts at both extremes.
+What changed was the board - one had 14 extreme-low tasks and the other had
+35 - so the same stable mechanism averaged out to opposite signs. The
+mechanism was understood; the aggregate was just a weighted average over a
+mix that varies.
+
+**One was the mechanism.** An agent that adds a computed arithmetic line
+was worse than its parent in *every* slice on the first board and better in
+*every* slice on the second. Nothing about composition explains that. The
+thing itself behaved differently, and there is no finding to keep.
+
+So the rule is not "aggregates reverse, distrust them". It is:
+
+- aggregate flips, slices agree -> a real mechanism and a mix effect. Keep
+  the mechanism, describe it by slice, and stop quoting the aggregate.
+- aggregate flips, slices flip too -> nothing is established. Withdraw it.
+
+The second case usually means something outside the agent moved between
+runs. Which is only diagnosable if the agent recorded what it did: the
+arithmetic agent fetches live data and writes down nothing about whether
+the fetch worked, so whether its line was present on both runs at all
+cannot now be established. **Any mechanism that fires conditionally must
+log its firing, or a reversal like this is permanently uninterpretable.**
+
 ## Reporting
 
 Every claim carries the board it was measured on, the number, its interval,
