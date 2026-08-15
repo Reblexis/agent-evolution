@@ -131,6 +131,35 @@ The runner should compute the paired comparison against an agent's parents
 automatically. Leaving it to whoever remembers to check means it gets
 checked when the result is surprising and skipped when it is welcome.
 
+## One board is not enough, whatever the interval says
+
+A bootstrap interval measures spread *within* a board. It says nothing
+about spread *between* boards, and those are not the same size.
+
+Measured, on the first project to run this practice. An agent was compared
+against its parent on one board and came out worse by 2.77 points with an
+interval of [+0.71, +4.98] - excluding zero, which is what a project
+normally treats as a result. The comparison was repeated on a second board
+frozen a day later, drawn from the same venues by the same rules, and came
+out better by 1.66 [-3.58, +0.17]. On the first board the mechanism moved
+the answer the wrong way on 36 of the 58 tasks it touched; on the second it
+moved it the right way on 42 of 72.
+
+The mechanism did not change. The board did.
+
+So: **an effect measured on one board is a hypothesis, and the interval
+around it is not protection.** A claim that decides anything is measured on
+two boards, and the two agree in direction. A project running rounds
+already has a second board for free - the next one - so this costs
+patience rather than money.
+
+The corollary is worth stating plainly, because it is the expensive half. A
+finding that has not been repeated should be written down as unrepeated,
+even when it is well argued and its interval looks clean, and especially
+when a mechanism has been reasoned out to explain it. A convincing
+explanation of a one-board effect is the most persuasive thing a project
+produces and the least reliable.
+
 ## Reporting
 
 Every claim carries the board it was measured on, the number, its interval,
