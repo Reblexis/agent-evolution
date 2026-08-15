@@ -107,6 +107,30 @@ version of the candidate that carries no information, which separates
 information from movement; and a version of the candidate given deliberately
 wrong inputs, which separates using the input from reacting to its presence.
 
+## Report the paired difference, not only the score
+
+A whole-board score mixes two things a project usually wants to keep
+apart: how well an agent does the task, and how often it manages to do it
+at all. Where an unattempted task is scored at a penalty - and it should be,
+or skipping the hard ones pays - the second can dominate the first.
+
+Measured on the first project to run this practice: three agents in one
+lineage scored 18.49, 19.69 and 20.50, which reads as a ranking. Paired
+task by task on the rows each pair both attempted, the differences were
++0.50 [-2.45, +3.57] and -0.20 [-3.65, +2.80]. They were the same agent for
+forecasting purposes; every point between them was coverage. On that board
+a blank cost about 30 points where a bad answer cost about 17.
+
+So a claim carries two numbers. The whole-board score, which ranks by
+reliability and is a real thing to be good at. And the paired difference on
+shared tasks, which is the only one that speaks to quality. Reporting the
+first alone is how a retry loop gets promoted for wisdom - which is exactly
+what nearly happened.
+
+The runner should compute the paired comparison against an agent's parents
+automatically. Leaving it to whoever remembers to check means it gets
+checked when the result is surprising and skipped when it is welcome.
+
 ## Reporting
 
 Every claim carries the board it was measured on, the number, its interval,

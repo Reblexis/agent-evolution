@@ -115,6 +115,25 @@ table of regions fitted offline is refused: fitted regions do not transfer,
 and a fitted table that appears to work is usually reproducing the
 population's marginal.
 
+Two things make this operator survivable, and both are cheap.
+
+**Write the fire rate down before the run.** A range, in advance. A trigger
+that fires on almost everything is not a trigger, and one that fires on
+almost nothing cannot be responsible for any change in the score - so if
+the score moves anyway, something else moved it.
+
+**Have the agent log every decision as it goes**, to a file beside it. The
+paired comparison that decides the operator is not the whole-board one; it
+is the comparison restricted to the tasks where the trigger actually fired.
+Without the log that comparison cannot be made at all.
+
+Worked example from the first project: a specialization posted the best
+whole-board score in the population. Its trigger fired on 49% of the board
+against a fifth-to-a-third written down in advance, and against the same
+mechanism applied everywhere it scored -0.95 [-3.89, +1.95] overall and
++0.84 [-3.66, +5.75] on the tasks where it fired. It was refused. Without
+the fire log it would have entered the record as the best agent there.
+
 ### rational-restart
 
 *Input*: the failure causes that recur across the whole population.
