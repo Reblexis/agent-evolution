@@ -156,8 +156,16 @@ interval excluding zero.
 
 A later direct twin - the same agent, the same board, run twice - gave
 0.465, and per-task disagreement with a median of 4 points and a 90th
-percentile of 27. Three observations, half a point to nearly three, sign
-changing.
+percentile of 27. With three more pairs the six observations were +2.77,
+-1.66, -0.47, +0.70, +2.42, +0.58: mean +0.72, standard deviation **1.68**,
+and the estimate moved only 1.88 to 1.68 on the sixth, which is where a
+project can start trusting it.
+
+Three figures were published before that one, each stated as if it were the
+answer: about three points from three observations, then 0.465 from a
+single twin, then 1.88 from five. The first was too confident, the second
+too generous, the third close. **Expect three or four goes**, and say which
+one you are quoting.
 
 Two things follow. **A bootstrap interval is not a noise band**: it
 resamples tasks within one pair of runs and cannot see how much the answer
