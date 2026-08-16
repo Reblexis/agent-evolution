@@ -510,3 +510,41 @@ The practical rules:
   void**, and vice versa. They are not independent knobs, and a lineage
   that turns one while holding conclusions from the other is reading a
   stale map.
+
+### A member that can be outvoted is safe; the same member with authority is not
+
+An operator will eventually notice that one member of an aggregate is being
+suppressed and propose promoting it - letting it decide directly when it is
+confident, instead of being averaged away. The argument is always the same
+and always sounds right: *this member is looking something up while the
+others are guessing, and being outvoted about a fact by six guesses is a
+bug.*
+
+Measured, that argument was wrong, and the way it was wrong is worth
+keeping.
+
+The member was a check on whether an event had already happened. Given
+authority, it fired on **20% of tasks** and its mean error where it fired
+was **41.4 points against 16.7 for the aggregate it replaced.** It asserted
+that events had already occurred on tasks the venue priced at one cent. The
+output format was three fixed words, the prompt said do not forecast, and
+the prompt said uncertainty means abstain. None of it helped, and the rigid
+format made things worse: a fabricated certificate is indistinguishable
+from a real one at the point of use, which is exactly what a format is for.
+
+**The suppression was the safety mechanism.** A median over six members
+excludes extremes by construction, so a member that is confidently wrong a
+fifth of the time costs almost nothing inside the aggregate and is ruinous
+outside it. The operator saw the exclusion and read it as lost information.
+It was purchased protection.
+
+So the rule: **before promoting a suppressed member, measure its error
+conditional on firing, not its error overall.** Those are different numbers
+and only the first one matters, because firing is the only time promotion
+changes anything. A member whose overall error looks tolerable can be
+carrying all of it in the cases where it would act.
+
+And the corollary that costs the most to learn late: **a strict output
+format does not make a model more truthful, it makes its errors better
+disguised.** Free text hedges visibly. A schema does not have a field for
+doubt.
