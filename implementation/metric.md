@@ -115,8 +115,9 @@ with the measurement that bought it, because the general form of the rule
 is easy to nod at and hard to apply against a result you like.
 
 They come in the order they bite: what the score is really ranking, whether
-the difference is bigger than the noise, whether it survives a second
-board, and what to do when it does not.
+the difference is bigger than the noise, whether the test could have seen
+the effect at all, whether it survives a second board, and what to do when
+it does not.
 
 ### Report the paired difference, not only the score
 
@@ -175,6 +176,36 @@ measurement a project can buy.
 
 Until a project has them, the honest form of every small result is "smaller
 than we can measure".
+
+### Say what your test could have seen, before you run it
+
+A null result means one of two things and they are not close: *no effect
+exists*, or *this test could not have found one*. Only the first is a
+finding, and telling them apart takes one line of arithmetic done in
+advance.
+
+Worked example. An agent was built to fetch a fact for tasks of a
+particular shape, which are about 15% of a board. Its record said, before
+it ran, that only 18 tasks would qualify on one board, that per-task noise
+is about 21.8 points, and therefore that **an effect smaller than 10 points
+would be invisible**. Pooled over two boards it predicted an interval near
+3.3 and it came out at 4.7.
+
+The result was -0.65 with an interval spanning ten points. Its record also
+carried a kill condition: if this shows nothing, the whole line of work is
+finished. **The condition did not fire, and refusing to fire it was the
+right call**, because an interval ten points wide cannot rule out the two
+to five point effects the project cares about. Declaring the line dead
+would have been a real conclusion drawn from no evidence.
+
+Writing the detectable effect down in advance is what makes that call
+available. Afterwards, every null is tempting to read as a refutation,
+especially a null on something expensive.
+
+The arithmetic is: per-task noise divided by the square root of the number
+of tasks the mechanism will actually touch. Not the board size - the
+**touched** size, which for anything conditional is much smaller and is the
+number that decides whether the experiment is worth running at all.
 
 ### One board is not enough, whatever the interval says
 
