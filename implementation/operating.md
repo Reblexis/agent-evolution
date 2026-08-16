@@ -143,3 +143,22 @@ spent and nothing was measured, and the queue looked exactly like a queue
 that had finished. A worker that pops work before the work succeeds cannot
 tell those apart. **Count consecutive failures and stop**, and leave the
 remainder where it was.
+
+## Two traps that cost a whole day between them
+
+**`pkill -f` matches the command that issued it.** Killing a background
+worker by pattern from inside a shell whose own command line contains that
+pattern kills the shell first, and the kill never happens. The bracket
+trick - `[d]rain.sh` - only helps when the pattern appears nowhere else in
+the command, and it will appear if the same line also copies or restarts
+the thing. This happened three times in one session; the third time it
+killed the session that was trying to restart a stalled worker, leaving it
+stopped. Kill by PID, in a command that does nothing else.
+
+**A worker that snapshots itself only picks up fixes on restart.** A
+long-running script that copies itself to a temporary path before running -
+a sensible guard, so a deploy cannot rewrite it mid-execution - also means
+every fix to it lands one full run later. The same deadlock was fixed three
+times and reappeared each time because the copy in memory was the old one.
+If a worker snapshots itself, the fix is not deployed until the worker is
+restarted, and nothing about the repository state will tell you that.
