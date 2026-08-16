@@ -84,6 +84,19 @@ threshold inside that spread cannot be met by any real effect. The second is
 the constant: whatever the simplest rule is that ignores the input entirely,
 a claim must beat it, because most apparent skill is a marginal in disguise.
 
+The noise is measured on the tasks the claim actually rests on, which for a
+mechanism that fires conditionally is not the whole population but the part
+it touched. A mechanism acting on a twentieth of the tasks is judged on that
+twentieth, where the spread is far wider, and a project that computes its
+threshold from the full population will believe things its evidence cannot
+support.
+
+From which follows the distinction that decides how a null is read. *No
+effect exists* and *this measurement could not have found one* are different
+findings, and only the first is a finding. Every experiment states, before
+it runs, the smallest effect it could detect. Afterwards, a null on
+something expensive is too tempting to read as a refutation.
+
 ## Selection
 
 An agent replaces the incumbent only on the deciding score, having passed
