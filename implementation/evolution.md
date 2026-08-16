@@ -470,3 +470,43 @@ The general warning: **an aggregation rule validated on one member set is
 not validated for the population, only for that set.** Swapping a member is
 enough to invert it, so a lineage that changes members and keeps the
 aggregator has silently stopped testing what it thinks it tested.
+
+### Two aggregators with different asymptotics look like one noisy result
+
+Earlier sections here recorded that the median beat the mean, then that it
+sometimes did not, and treated the inconsistency as a property of the
+members. Part of it was. Most of it was not.
+
+Scored over every subset of nine members on one board:
+
+| k members | median of subsets | mean of subsets |
+|---|---|---|
+| 1 | 19.49 | 19.49 |
+| 4 | 16.75 | 17.81 |
+| 6 | 15.81 | 17.58 |
+| 9 | **13.55** | 17.42 |
+
+**The mean saturates and the median does not.** Past four members the mean
+gains 0.4 in total; the median gains 3.2 and is still falling.
+
+So the two rules are not near-equivalents that swap places under noise.
+They have different limits, and the gap between them is a function of the
+member count: 1.38 apart at six members, 3.87 at nine. **Every single-board
+comparison of two aggregators is silently a measurement of the population
+size it happened to run at**, and comparing two such measurements taken at
+different sizes produces a contradiction that looks like noise and is not.
+
+The practical rules:
+
+- **Compare aggregators as curves over k, never as two numbers.** One run
+  gives the whole curve if every member's output is logged, so there is no
+  excuse for the two-number version.
+- **A conclusion that returns to members are diminishing is conditional on
+  the aggregator that measured it.** This population concluded exactly that
+  and went hunting elsewhere for four generations. It was true under the
+  mean and false under the median, and the cheapest available gain was in
+  the member count the whole time.
+- **When an aggregator changes, every prior finding about member count is
+  void**, and vice versa. They are not independent knobs, and a lineage
+  that turns one while holding conclusions from the other is reading a
+  stale map.
