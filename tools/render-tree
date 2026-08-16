@@ -11,6 +11,7 @@ whatever the project's runner writes, read for these keys:
 import html
 import json
 import os
+import re
 import sys
 import time
 
@@ -207,12 +208,52 @@ def render(root, cfg, nodes, asks):
                       esc(num)))
     svg.append("</svg>")
 
+    # A question you cannot answer where you are reading it is not really
+    # being asked. If the project supplies an answer endpoint, each open
+    # ask gets its full text and a box; otherwise they are shown read-only.
+    endpoint = cfg.get("answerEndpoint")
+    token = cfg.get("answerToken", "")
     open_asks = [a for a in asks if a.get("status", "open") == "open"]
-    asks_html = "".join(
-        '<li><b>%s</b>, %s <span class="q">unblocks %s</span></li>'
-        % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
-           esc(a.get("unblocks", "")))
-        for a in open_asks) or "<li>Nothing right now.</li>"
+    blocks = []
+    for a in open_asks:
+        full = ""
+        try:
+            raw = open(os.path.join(root, cfg.get("asks", "asks"),
+                                    a["file"])).read()
+            # everything after the header block, which is the context a
+            # person needs to answer without opening the repository
+            m = re.split(r"\n##\s", raw, maxsplit=1)
+            if len(m) > 1:
+                full = "## " + m[1]
+        except OSError:
+            pass
+        body = ('<details><summary>the whole question</summary>'
+                '<pre class="ask">%s</pre></details>' % esc(full)) if full \
+            else ""
+        form = ""
+        if endpoint:
+            form = ('<form class="ans" data-ask="%s"><textarea rows="4" '
+                    'placeholder="A sentence is enough. It becomes an agent '
+                    'next round, with your words quoted in its record."'
+                    '></textarea><button type="submit">send</button>'
+                    '<span class="said"></span></form>' % esc(a["file"]))
+        blocks.append('<li><b>%s</b>, %s <span class="q">unblocks %s</span>'
+                      '%s%s</li>'
+                      % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
+                         esc(a.get("unblocks", "")), body, form))
+    asks_html = "".join(blocks) or "<li>Nothing right now.</li>"
+    answer_js = ("" if not endpoint else """
+document.querySelectorAll('form.ans').forEach(function(f){
+ f.addEventListener('submit',function(e){e.preventDefault();
+  var t=f.querySelector('textarea'), s=f.querySelector('.said');
+  if(!t.value.trim()){return;} s.textContent=' sending...';
+  fetch(%s,{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({ask:f.dataset.ask,answer:t.value,token:%s})})
+  .then(function(r){return r.json();})
+  .then(function(j){s.textContent=j.ok?' saved. It becomes an agent next round.':(' failed: '+(j.error||'?'));
+   if(j.ok){t.disabled=true;}})
+  .catch(function(){s.textContent=' failed to reach the box.';});});});
+""" % (json.dumps(endpoint), json.dumps(token)))
 
     # A colour scale nobody explained is decoration. The legend states
     # both encodings and the range they cover on this board.
@@ -270,6 +311,16 @@ h1{font-size:22px;margin:0 0 .2rem} h2{font-size:17px;margin:2rem 0 .4rem}
 padding:1rem;overflow-x:auto}
 ul{margin:.3rem 0;padding-left:1.2rem} li{margin:.35rem 0}
 .q{color:var(--muted)}
+details{margin:.5rem 0} summary{cursor:pointer;color:var(--muted);
+font-size:13px} pre.ask{white-space:pre-wrap;font-size:12.5px;
+background:Canvas;border:1px solid var(--line);border-radius:8px;
+padding:.7rem;max-height:22rem;overflow:auto}
+form.ans{display:flex;gap:.5rem;align-items:flex-start;margin:.5rem 0 0}
+form.ans textarea{flex:1;font:13px/1.5 system-ui,sans-serif;padding:.5rem;
+border:1px solid var(--line);border-radius:8px;background:Canvas;
+color:var(--fg)} form.ans button{padding:.45rem .9rem;border-radius:8px;
+border:1px solid var(--line);background:var(--card);color:var(--fg);
+cursor:pointer} .said{color:var(--muted);font-size:12.5px;align-self:center}
 .key{display:flex;flex-wrap:wrap;gap:1.4rem;align-items:center;
 margin:0 0 .7rem;font-size:13.5px;color:var(--fg)}
 .key>span{display:flex;align-items:center;gap:.4rem}
@@ -289,6 +340,7 @@ line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 <h2>Waiting on you</h2>
 <div class="box"><ul>%s</ul></div>
 <script>
+%s
 (function(){var t=document.getElementById('tip');
 document.addEventListener('mousemove',function(e){
  var el=e.target.closest&&e.target.closest('circle,text');
@@ -301,7 +353,7 @@ document.addEventListener('mousemove',function(e){
         esc(cfg.get("name", "population")), esc(cfg.get("title")
                                                 or cfg.get("name", "")),
         note, time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()), note_board,
-        legend, "".join(svg), asks_html)
+        legend, "".join(svg), asks_html, answer_js)
 
 
 def main():

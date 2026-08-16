@@ -207,6 +207,43 @@ of tasks the mechanism will actually touch. Not the board size - the
 **touched** size, which for anything conditional is much smaller and is the
 number that decides whether the experiment is worth running at all.
 
+### Give every open question a closing date
+
+The arithmetic that says what a test could see also says *when* it will be
+able to see it, and that turns a backlog of unresolved questions into a
+schedule.
+
+The detectable effect on a slice is roughly twice the per-task noise over
+the square root of the slice's size. Slices grow by pooling boards, not by
+enlarging one - a bigger board runs out of supply, and a project running
+rounds gets another board for free every cycle. So for each open question:
+take the effect being looked for, the slice it lives in, how fast that
+slice grows per round, and solve for the round at which the two cross.
+
+Worked, on the first project. A mechanism worth about 3.3 points on the
+"likely" slice had 90 such tasks and needed 4.60 to see it. The next board
+took it to 151 and 3.55 - still short. One more day of two boards took it
+to 261 and 2.70, which settles it. **That was computed before the board ran
+and it changed how the result was read**: a number arriving on a board
+known in advance to be underpowered cannot be promoted, however it looks.
+
+Three things follow.
+
+**A question with a date is not a question that needs work.** The first
+project ended a night with 88 agents and four open questions, every one of
+which closes within four days on boards that were going to be frozen
+anyway. Building an 89th agent would have added a question, not answered
+one.
+
+**A date exposes a question that will never close.** If the slice does not
+grow - a mechanism firing on 4% of a board, a venue that supplies twelve
+qualifying tasks - the arithmetic says so, and the honest response is to
+change the mechanism or drop it rather than run it monthly forever.
+
+**And it removes the temptation to read an underpowered result.** Knowing
+on Tuesday that Thursday settles it is what makes Tuesday's number easy to
+leave alone.
+
 ### One board is not enough, whatever the interval says
 
 A bootstrap interval measures spread *within* a board. It says nothing
