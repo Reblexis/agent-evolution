@@ -314,3 +314,65 @@ enter a record as pasted output from the run that produced them.
 
 Absolute scores from different boards are never compared. Only paired
 contrasts on the same board are.
+
+### A band is defined by one variable, so it lies about the other
+
+Score tables in this practice are usually cut into bands of the thing being
+compared against - price bands, difficulty bands, size bands. Every one of
+those tables is a regression-to-the-mean trap, and the trap is not subtle:
+it produces large, orderly, entirely fake gradients.
+
+Binning 205 markets by venue price and reading off what the agents said:
+
+| price band | mean price | what the agents said |
+|---|---|---|
+| 0-5 | 2.3 | 14.9 |
+| 5-20 | 11.9 | 24.8 |
+| 50-80 | 63.7 | 43.1 |
+| 80-101 | 91.9 | 69.7 |
+
+That reads as a population badly compressed toward the middle, and it is
+the kind of table that gets a recalibration layer built for it. Bin the
+same data the other way round, by what the agents said, and the venue looks
+compressed instead: they say 2.8 where the price is 5.1, and 87.0 where it
+is 84.8. Both slopes are below one - 0.55 and 0.83 - because two noisy
+quantities that disagree always look mutually compressed, whichever you
+condition on.
+
+**The check is one line: bin by the other variable.** If the picture
+mirrors, the gradient is regression to the mean and there is nothing to
+fix. Here the direct test agreed - stretching every answer away from the
+middle, sweeping the coefficient from 1.0 to 4.0, improved not one agent
+out of eleven.
+
+Two related failures from the same night, both of which produced a real
+number that meant nothing:
+
+- **A slice that differs in composition.** Markets whose question names a
+  deadline sat 6.48 points higher above the venue than markets that did
+  not, which looks like agents ignoring the window. They also had a mean
+  price of 29.3 against 46.4. Matched band by band the difference is -0.50
+  [-4.74, +3.74]. The whole effect was the price mix.
+- **An output transform imitating a mechanism.** An agent that answered 6.5
+  points lower than its parent everywhere appeared to be better on cheap
+  markets and worse on expensive ones. Subtracting 6.5 from the parent's
+  own answers reproduced the expensive-market half exactly and the cheap
+  half not at all, which is how the one real effect was separated from the
+  arithmetic.
+
+The general form: **before believing a slice, construct the dumbest thing
+that would produce the same table, and run it.** A shift, a stretch, a
+reweighting of the mix. It costs nothing because no agent runs.
+
+### Pool by the unit of independence, not by the observation
+
+Boards frozen at different times from the same venues overlap. Five boards
+in this project held 705 agent-market observations and 427 distinct
+markets. Pooling them raw treats one market that appeared on three boards
+as three independent facts, and shrinks the interval by a third around
+nothing.
+
+A market that ran more than once is repeated measurement of one quantity.
+Average the runs into one observation: the noise reduction is kept and the
+market is counted once. An accumulation strategy is the case where this
+matters most, because the double counting grows with the pile.
