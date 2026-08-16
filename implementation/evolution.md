@@ -350,3 +350,41 @@ way before believing it. And averaging costs one run per member per task,
 so an ensemble that needs eleven members to beat one agent has multiplied
 the cost of every future round by eleven; the curve of members against gain
 has to be measured, not assumed.
+
+### Selecting parents when performance is noisy
+
+Selection has two jobs that get conflated, and only one of them survives
+contact with a noisy metric.
+
+**Picking a champion is often dominated by averaging** - see the section
+above. **Picking who breeds is not**, and it should be weighted by
+performance rather than by whichever agent somebody happened to autopsy
+first. On one project, six of seven children in a round came off the fifth
+agent rather than the first, because the fifth was the one with twin runs
+and therefore the most diagnostic data. The agent whose failures you read
+and the agent you build the child on are two different choices.
+
+The scheme that survives a noisy metric, in order:
+
+1. **Score relative to the field on each task-set, not absolutely.** The
+   same agent scored 18.15 and 20.98 on two boards; that is the boards, not
+   the agent. Pool the relative numbers, weighted by tasks.
+2. **Shrink by uncertainty.** `shrunk = raw x tau2 / (tau2 + se2)`, where
+   `se` is the per-task noise over the square root of the tasks the agent
+   ran, and `tau2` is the variance of the raw fitnesses minus the mean
+   sampling variance. An agent measured once on a small set barely leaves
+   the population mean; one measured four times keeps its number. On the
+   project above this moved the leader from -1.92 to -1.39, so 28% of its
+   apparent lead was noise it would have bred on.
+3. **Carry elites over untouched.** A good lineage should not be lost to
+   one bad draw.
+4. **Draw the rest by linear rank weight, not fitness proportion.** These
+   scores are distances with an arbitrary zero, so a proportional weight on
+   them means nothing. Best gets weight `pressure`, worst gets 1, linear
+   between.
+5. **Closed lineages keep their number and stop breeding.** That is what
+   closing one meant.
+
+The check that says whether any of this is worth running: compare the
+population's average output against its best member. If averaging wins,
+selection is for breeding only and the round's output is an ensemble.
