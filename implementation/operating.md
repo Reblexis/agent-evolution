@@ -99,3 +99,47 @@ the scores and the asks.
 
 A project supplies the adapter these tools call to find its population, its
 scores and its asks, and nothing else.
+
+## Doing it by hand is how you lose the thing the tool was protecting
+
+A deploy script refused to run. The reason was real: untracked files on the
+machine collided with files the incoming commits added. What followed is
+worth writing down in order, because each step was reasonable and the
+sequence was not.
+
+1. The files were removed by hand, after checking each was byte-identical
+   to what was coming. Correct, and it exposed the next problem.
+2. A rebase then conflicted on derived score records and **wrote conflict
+   markers into result files** - the same corruption this project had
+   already had once that week.
+3. The rebase was aborted and the machine's results were pulled into git so
+   nothing could be lost. Correct.
+4. Its checkout was then reset with `git reset --hard`. That **cost 270
+   rows of a live trading journal**, recovered afterwards from the reflog.
+
+Step 4 is the one to learn from. The deploy script contains a check that
+refuses when that journal shrinks. It exists because the journal had been
+stranded three times before. Resetting by hand did the same job as the
+deploy script with that check removed, and removed exactly the check that
+mattered.
+
+**The rule: when a tool refuses, fix the tool.** A tool that refuses is
+usually refusing for a reason it knows and you have not reconstructed yet,
+and the hand-run version of what it does is the same operation minus every
+guard somebody added after being burned. If the fix is urgent, add the
+missing case to the tool and run the tool - that is rarely slower, and it
+leaves the next person protected.
+
+**And the corollary for recovery: capture before you reset.** The reflog
+saved this one, which was luck rather than design. Copy the mutable state
+somewhere outside the repository first, verify what you captured parses,
+and only then let anything destructive run.
+
+**A related failure from the same hour, worth pairing with it.** A queue of
+sixteen registered runs emptied in eight seconds because a tool crashed at
+startup on every item: name resolution had been added to two tools, tested
+through the one that imported its helper, and not the other. Nothing was
+spent and nothing was measured, and the queue looked exactly like a queue
+that had finished. A worker that pops work before the work succeeds cannot
+tell those apart. **Count consecutive failures and stop**, and leave the
+remainder where it was.
