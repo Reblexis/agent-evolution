@@ -122,7 +122,20 @@ def render(root, cfg, nodes, asks):
         for h in (n.get("history") or []):
             if h.get("board"):
                 tally[h["board"]] = tally.get(h["board"], 0) + 1
-    ref = max(sorted(tally), key=lambda b: (tally[b], b)) if tally else None
+    # Prefer a board whose scores are outcomes over one whose scores are a
+    # screen, however many more agents the screen board has. A screen
+    # measures distance from a price and the outcome measures whether the
+    # agent was right, and those rank differently: on 2026-08-16 a constant
+    # scored 30.25 on the screen and 22.75 against outcomes, third from
+    # last on one and second of five on the other. Colouring by the screen
+    # when outcomes exist would tell the reader the opposite of the truth.
+    decided = set()
+    for n in nodes.values():
+        for h in (n.get("history") or []):
+            if h.get("board") and (h.get("scoreIs") or "").startswith("outcome"):
+                decided.add(h["board"])
+    ref = (max(sorted(tally), key=lambda b: (b in decided, tally[b], b))
+           if tally else None)
     for n in nodes.values():
         n["score"] = next((h for h in (n.get("history") or [])
                            if h.get("board") == ref), None)
