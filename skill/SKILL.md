@@ -62,6 +62,39 @@ open, what is dead and why, what other researchers are running. Then:
 - to validate the population, `tools/check-tree`, which fails rather than
   warns
 - to publish, `tools/render-tree`, never hand-edit the page
+- to ask the human something, file it with the `ask-operator` operator and
+  carry on: it never blocks, and the answer becomes an agent whenever it
+  arrives
+
+## What will go wrong first
+
+From the first project's first full night. Every one of these produced a
+confident number that meant nothing, and each is cheap to prevent.
+
+- **You will compare scores across boards.** Agents that cannot vary - a
+  constant, a coin flip - scored 1.4 to 4.3 points apart on three boards of
+  the same kind. A score moving by that much says nothing. Compare paired
+  within one board, or on a score measured against ground truth, which is
+  not board-relative.
+- **You will trust a bootstrap interval as a noise band.** It resamples
+  tasks within one pair of runs and cannot see run-to-run variation. Two
+  runs of an identical agent differed by 2.77 with an interval excluding
+  zero. Measure the real band by running the same agent twice, several
+  times, and expect it to take three or four goes before it settles.
+- **Your mechanism will fire on nothing, and you will not notice.** Three
+  did here: an arithmetic layer on 0 of 284 tasks, a page fetcher on 0 of
+  284, a rule-quote gate on 4%. Two of them looked like results. Make every
+  conditional mechanism log each decision to a file beside the agent, and
+  check the fire rate before reading the score.
+- **The best score on the board will be noise.** It was, twice, and both
+  times the fire log was the only thing that said so.
+- **A tool that regenerates will overwrite something that cost money.** A
+  dry run ate a paid trigger log; a sync ate annotations on result records;
+  a redirect truncated a live log. Anything derived should be rebuildable
+  and anything paid for should be write-once.
+
+The general shape: the cheap silent thing quietly destroys or misrepresents
+the expensive one. Assume it is happening and go and look.
 
 ## Installing this skill for an agent
 
