@@ -185,3 +185,26 @@ appearing - rather than on the absence of a process pattern. Waiting on
 output is also the more honest condition, because a process that died still
 satisfies "no longer running" and a log line only appears if the work
 actually happened.
+
+### An edit that is not committed is a note to yourself
+
+The deploy script on the working machine discards local changes on purpose:
+it is the thing that guarantees the box runs the pushed code and not
+whatever was typed into it at three in the morning. That guarantee is worth
+having and it has a sharp edge.
+
+A measurement file was repaired directly on the box - a corrected record, a
+backfilled column - and left uncommitted while the next thing was set up.
+The next thing began with a deploy. The repair was gone, and the only
+symptom was a later log line quoting the old number, which reads like a
+stale cache rather than a lost edit.
+
+**On any machine whose deploy resets the tree, an edit and its commit are
+one action.** Not "edit, verify, commit later". If the edit is worth making
+it is worth committing in the same command, and if it is not worth
+committing it should not have been made on that machine at all.
+
+The same applies to files the machine itself writes and that were recently
+promoted from ignored to tracked. Their previous behaviour - survive
+everything, travel nowhere - is the opposite of their new one, and the
+habits formed under the old behaviour are now wrong.
