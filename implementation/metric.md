@@ -107,7 +107,18 @@ version of the candidate that carries no information, which separates
 information from movement; and a version of the candidate given deliberately
 wrong inputs, which separates using the input from reacting to its presence.
 
-## Report the paired difference, not only the score
+## Reading a result
+
+Four ways a number here can be true and mean nothing. Each was bought with
+a mistake on the first project to run this practice, and each is stated
+with the measurement that bought it, because the general form of the rule
+is easy to nod at and hard to apply against a result you like.
+
+They come in the order they bite: what the score is really ranking, whether
+the difference is bigger than the noise, whether it survives a second
+board, and what to do when it does not.
+
+### Report the paired difference, not only the score
 
 A whole-board score mixes two things a project usually wants to keep
 apart: how well an agent does the task, and how often it manages to do it
@@ -131,7 +142,33 @@ The runner should compute the paired comparison against an agent's parents
 automatically. Leaving it to whoever remembers to check means it gets
 checked when the result is surprising and skipped when it is welcome.
 
-## One board is not enough, whatever the interval says
+### A difference smaller than two runs of the same agent is not a difference
+
+The mandatory noise control above says to measure the population's own
+spread before declaring a threshold. This is what it looks like when a
+project does not.
+
+On the first project, two agents were compared across two boards and gave
++2.77 [+0.71, +4.98] and -1.66 [-3.58, +0.17]. They then turned out to be
+the same agent: the only difference between them fired on zero tasks. So
+those two numbers are the run-to-run spread, and one of them had an
+interval excluding zero.
+
+A later direct twin - the same agent, the same board, run twice - gave
+0.465, and per-task disagreement with a median of 4 points and a 90th
+percentile of 27. Three observations, half a point to nearly three, sign
+changing.
+
+Two things follow. **A bootstrap interval is not a noise band**: it
+resamples tasks within one pair of runs and cannot see how much the answer
+depends on the run, because it only has one. And **one twin is one draw**:
+a band needs several, and at the price of a run they are the cheapest
+measurement a project can buy.
+
+Until a project has them, the honest form of every small result is "smaller
+than we can measure".
+
+### One board is not enough, whatever the interval says
 
 A bootstrap interval measures spread *within* a board. It says nothing
 about spread *between* boards, and those are not the same size.
@@ -160,7 +197,7 @@ when a mechanism has been reasoned out to explain it. A convincing
 explanation of a one-board effect is the most persuasive thing a project
 produces and the least reliable.
 
-## When an aggregate reverses, look at the slices before believing anything
+### When an aggregate reverses, look at the slices before believing anything
 
 Two comparisons in the first project reversed between boards. They look
 identical in the summary table and they are not the same thing at all.
