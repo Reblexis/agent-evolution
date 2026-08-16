@@ -428,3 +428,45 @@ So the finding licenses exactly one move - go and test the apparent best
 member on a board frozen *after* the choice was made - and it does not
 license promoting it. The free direction and the real effect are both in
 that table, and only a held-out board separates them.
+
+### The median discards the member that is rarely right and decisive
+
+The rule above - robust aggregation when members are unequal - held on three
+boards and then flipped on the fourth, and the flip is more useful than the
+rule.
+
+On three boards with a fixed set of six members, the median beat the mean
+every time. On the fourth, one member was swapped and the mean beat the
+median, 18.40 to 19.28. Nothing about the aggregation changed. What changed
+was the *shape* of the replaced member's errors.
+
+The member it replaced was diffusely wrong: asked for a reference class
+that did not exist, it produced a plausible middling number most of the
+time. A median ignores that for free, which is why the median kept winning.
+
+The new member was a check on whether the event had already happened. That
+one is usually silent and occasionally decisive - when it fires it is near
+certain and near right. **With six members the median is the average of the
+third and fourth, so a member that sits at an extreme is excluded by
+construction, whether it is extreme because it is wrong or extreme because
+it is certain.** The mean keeps a sixth of it. On a board where it fired,
+that sixth was worth more than the noise it let in.
+
+So the choice of aggregator is not a property of the population's average
+quality, which is how it is usually framed. It is a property of *how the
+bad members fail*:
+
+- members that are **diffusely wrong** - noisy around the truth, or
+  confabulating a middling answer - argue for the median
+- members that are **rarely right and decisive** - silent, then certain -
+  argue for the mean, or for routing round the aggregator entirely and
+  letting that member override when it fires
+
+A population containing both wants neither aggregate. It wants the
+decisive member consulted first and the rest averaged robustly behind it,
+which is a different architecture and not a parameter choice.
+
+The general warning: **an aggregation rule validated on one member set is
+not validated for the population, only for that set.** Swapping a member is
+enough to invert it, so a lineage that changes members and keeps the
+aggregator has silently stopped testing what it thinks it tested.
