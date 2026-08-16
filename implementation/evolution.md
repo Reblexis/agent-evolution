@@ -388,3 +388,43 @@ The scheme that survives a noisy metric, in order:
 The check that says whether any of this is worth running: compare the
 population's average output against its best member. If averaging wins,
 selection is for breeding only and the round's output is an ensemble.
+
+## Averaging raises the floor and lowers the ceiling
+
+A population that can average its members will keep proposing to average
+more of them, because each addition looks like it helps. Measure it as a
+curve over subset size and the shape gives the mechanism away:
+
+    k members averaged   best subset   mean subset
+        1                   16.95         21.04
+        3                   17.26         19.49
+        6                   19.00         19.00
+
+The two columns converge from opposite directions. Averaging is pulling
+every subset toward the same middle: it lifts a randomly chosen member and
+it caps the best one. That is variance reduction, and it is worth having
+when you cannot tell your members apart. It is **not** accuracy, and a
+lineage that keeps buying members while calling it accuracy is paying more
+each generation to move toward its own average.
+
+The distinguishing question is whether the members differ in quality. Here
+they ran from 16.95 to 27.00 - a factor the averaging simply absorbed, so
+averaging a good member with a bad one produced something worse than the
+good member alone. **When members vary in quality more than they vary in
+error, selecting beats averaging.** When they are near-equals that fail
+independently, averaging wins. Measure which regime you are in before
+spending a generation on either, and the subset curve measures it in one
+run for free if every member's output is logged.
+
+### The trap in the same table
+
+Best-of-k is selected after the fact. The 16.95 is the *maximum* of six
+draws, so it carries the optimism of that maximum, and a lineage that
+promotes it on the strength of this table has fitted the board. Mean-of-k
+is the honest column: it says averaging genuinely helps against a member
+chosen blind, which is the only kind you can commit to in advance.
+
+So the finding licenses exactly one move - go and test the apparent best
+member on a board frozen *after* the choice was made - and it does not
+license promoting it. The free direction and the real effect are both in
+that table, and only a held-out board separates them.
