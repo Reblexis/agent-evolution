@@ -299,3 +299,54 @@ its own:
 
 Because the operator is recorded on every agent, a project measures these
 priors on itself as its population grows, and re-weights.
+
+## When selection is worth less than averaging
+
+Selection is the default move of this practice: run the population, promote
+the winner, build children of it. That move has a precondition nobody
+states, and it is worth checking before every promotion.
+
+**Selection needs the quality difference between agents to be large
+relative to the per-task noise.** When it is not, ranking is fitting noise
+and the promotion apparatus is expensive theatre.
+
+Measured on one project, 2026-08-16, across every ordered pair of four
+boards:
+
+| | score, lower better |
+|---|---|
+| the average agent | 20.4 |
+| the winner picked on another board | 19.5 |
+| **every agent averaged** | **17.2** |
+
+Rank transferred moderately - mean Spearman +0.550 - so selection was not
+worthless: it bought 0.89 points. Averaging bought 2.29, in twelve board
+pairs out of twelve, and beat an *oracle* allowed to pick the best single
+agent on the test board itself in eleven out of twelve.
+
+The reason was measurable and is the thing to check: per-task noise was
+about 22 points and true differences between agents were one to two. A
+signal of one under noise of twenty-two cannot be selected on, and is
+exactly what averaging exists for.
+
+**The check, before promoting anything:**
+
+1. Measure the per-task noise, by running one agent twice.
+2. Measure the spread of agent means.
+3. If the spread is small next to the noise divided by the square root of
+   the task count, the ranking is mostly noise. Compare the population's
+   average output against its best member before promoting the best member.
+
+**When it fails, the output of a round is an ensemble, not a champion**,
+and selection's job changes from picking a winner to deciding what is worth
+keeping in the pool. Children are still built from diagnoses of individual
+agents - that part is unaffected, because an autopsy reads a mechanism's
+failures and does not need the mechanism to be the best one.
+
+Two warnings. An ensemble sits nearer the consensus of its members, so if
+the metric rewards agreeing with some other consensus, part of the gain may
+be that and not accuracy - check against a metric that cannot be gamed that
+way before believing it. And averaging costs one run per member per task,
+so an ensemble that needs eleven members to beat one agent has multiplied
+the cost of every future round by eleven; the curve of members against gain
+has to be measured, not assumed.
