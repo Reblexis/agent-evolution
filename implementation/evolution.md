@@ -20,6 +20,46 @@ The reason must be checkable mechanically. An instruction added to a prompt
 telling a model to be careful about something is not a mechanism; a
 condition in code that fires on the class is.
 
+### Changing the output is not a mechanism either
+
+The prompt-versus-code line above is the easy half, and it is not enough.
+The first project to run this practice refuted **seven** mechanisms in one
+night, and they had one thing in common that the prompt-versus-code
+distinction does not capture. Three were prompt changes: rewording the
+question, asking what would have to go wrong instead of how likely, and
+asking for a date so the answer could be computed rather than stated. Four
+were code: routing on a judged fact, gating a confident answer on a quoted
+rule, shrinking answers toward a constant, and shrinking them more where
+they were confident.
+
+All seven transformed **what the model said**. None changed **what the
+model knew**. Every one came back inside the noise band or worse.
+
+Two of them settled it beyond argument. Asked for a date instead of a
+probability, the model expressed the same certainty through the new
+channel - "will this ever happen: no" - and the arithmetic turned that into
+0.02 on a quarter of the board; saturation rose rather than fell. And a
+mechanism and its **exact inverse** - shrink confident answers more, shrink
+them less - differed by 0.82 on a noise band of 1.88, which is what two
+treatments look like when the quantity they both key on carries nothing.
+
+Meanwhile the one thing that moved a number was adding a search: worth 13
+to 19 points on the slice where the model lacked information, and a cost
+elsewhere.
+
+So the working rule is sharper than "code, not prompts":
+
+> A transformation of the agent's own output is not new information, and on
+> a task where the agent's problem is what it does not know, it will do
+> nothing. Ask what the child will **know** that its parent did not.
+
+This does not mean output transformations are always inert - a genuinely
+miscalibrated estimator can be fixed by shrinking it, and that project's
+own older record is full of cases where it worked. It means they cannot
+manufacture information, so they only help where the failure is expression
+rather than knowledge. Establish which one it is before spending a round on
+it.
+
 An operator's input is the `analysis/STRENGTHS.md` of the agents it acts on,
 and where that document does not exist yet, producing it is the first half
 of the work.
