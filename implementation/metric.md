@@ -376,3 +376,34 @@ A market that ran more than once is repeated measurement of one quantity.
 Average the runs into one observation: the noise reduction is kept and the
 market is counted once. An accumulation strategy is the case where this
 matters most, because the double counting grows with the pile.
+
+### A slice chosen because the failure is visible in it has a free direction
+
+The natural way to study a failure cheaply is to take the markets where it
+happens. That slice is then, by construction, one where one direction of
+error costs almost nothing - and every estimator that leans that way will
+look good on it.
+
+Seventy tasks were picked because a research failure showed there. They
+were all priced under 0.15. On them:
+
+| | score |
+|---|---|
+| answering zero every time | **6.07** |
+| the best combiner tried | 8.30 |
+| a single draw | 13.81 |
+
+The combiner beat a flat-shift null - 8.30 against a best-shift 9.20 - and
+was still meaningless, because the null was not extreme enough. The
+constant was.
+
+**So the null for a biased-looking estimator is not a shift. It is the
+constant that the slice rewards.** Answer zero, answer one, answer the
+slice's own mean - whichever direction is free there. If the estimator
+cannot beat that, the slice cannot judge it.
+
+Dispersion survives this and central tendency does not. Two runs of the
+same thing differ by the same spread whatever shift they share, so noise
+decompositions measured on a biased slice are still valid. "Which of these
+two is better" measured on one is not, unless the two have the same mean
+output - and that has to be checked and reported, not assumed.
