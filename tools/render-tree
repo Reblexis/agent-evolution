@@ -255,6 +255,55 @@ def render(root, cfg, nodes, asks):
                       % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
                          esc(a.get("unblocks", "")), body, form))
     asks_html = "".join(blocks) or "<li>Nothing right now.</li>"
+
+    # The timeline of improvements, if the project keeps one. A population
+    # page shows what exists; it does not show whether any of it is getting
+    # better, and that is the only question worth asking of an evolution.
+    tl = []
+    try:
+        tl = json.load(open(os.path.join(root, "state", "timeline.json")))
+    except Exception:
+        tl = []
+    if tl:
+        best = tl[-1]["score"]
+        first = tl[0]["score"]
+        hours = sum(r.get("hoursSinceLast", 0) for r in tl[1:])
+        rows = []
+        lo = min(r["score"] for r in tl)
+        hi = max(r["score"] for r in tl)
+        span = (hi - lo) or 1.0
+        for r in tl:
+            w = 8 + 88 * (hi - r["score"]) / span
+            rows.append(
+                '<tr><td class="dim">%s</td><td>%s</td>'
+                '<td style="text-align:right"><b>%.2f</b></td>'
+                '<td class="dim" style="text-align:right">%s</td>'
+                '<td class="dim" style="text-align:right">%s</td>'
+                '<td style="width:40%%"><div style="height:9px;border-radius:5px;'
+                'background:%s;width:%.0f%%"></div></td></tr>'
+                % (esc(r["at"][:16].replace("T", " ")), esc(r["agent"]),
+                   r["score"],
+                   ("%+.2f" % -r["gained"]) if r.get("gained") else "-",
+                   ("%.1fh" % r["hoursSinceLast"]) if r.get("hoursSinceLast")
+                   else "-", RAMP[-2], w))
+        pace = ("one every %.0f hours" % (hours / (len(tl) - 1))
+                if len(tl) > 1 else "no second point yet")
+        timeline_html = (
+            '<h2>Is it getting better?</h2><div class="box">'
+            '<p class="dim">Each row is an improvement on the one above it, '
+            'not a round that ran. %.2f points over %.0f hours, %d '
+            'improvement%s, %s.</p>'
+            '<table style="width:100%%;border-collapse:collapse;font-size:14px">'
+            '<tr class="dim"><th style="text-align:left">when</th>'
+            '<th style="text-align:left">agent</th>'
+            '<th style="text-align:right">score</th>'
+            '<th style="text-align:right">gained</th>'
+            '<th style="text-align:right">since last</th><th></th></tr>'
+            '%s</table></div>'
+            % (first - best, hours, len(tl) - 1,
+               "" if len(tl) - 1 == 1 else "s", pace, "".join(rows)))
+    else:
+        timeline_html = ""
     answer_js = ("" if not endpoint else """
 document.querySelectorAll('form.ans').forEach(function(f){
  f.addEventListener('submit',function(e){e.preventDefault();
@@ -350,6 +399,7 @@ line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 <div class="sub">%s</div>
 %s
 <div class="box">%s</div>
+%s
 <h2>Waiting on you</h2>
 <div class="box"><ul>%s</ul></div>
 <script>
@@ -366,7 +416,7 @@ document.addEventListener('mousemove',function(e){
         esc(cfg.get("name", "population")), esc(cfg.get("title")
                                                 or cfg.get("name", "")),
         note, time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()), note_board,
-        legend, "".join(svg), asks_html, answer_js)
+        legend, "".join(svg), timeline_html, asks_html, answer_js)
 
 
 def main():
