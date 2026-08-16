@@ -123,18 +123,28 @@ def render(root, cfg, nodes, asks):
             if h.get("board"):
                 tally[h["board"]] = tally.get(h["board"], 0) + 1
     # Prefer a board whose scores are outcomes over one whose scores are a
-    # screen, however many more agents the screen board has. A screen
-    # measures distance from a price and the outcome measures whether the
-    # agent was right, and those rank differently: on 2026-08-16 a constant
+    # screen, because the two rank differently: on 2026-08-16 a constant
     # scored 30.25 on the screen and 22.75 against outcomes, third from
     # last on one and second of five on the other. Colouring by the screen
     # when outcomes exist would tell the reader the opposite of the truth.
+    #
+    # But only when the outcome board actually covers the population. This
+    # rule used to prefer outcomes at any coverage, and a two-agent
+    # historical board then beat the live nine-agent one: every current
+    # agent rendered as "not scored yet" while the page cited a board that
+    # had been retired for being a floor test. A board nobody current ran
+    # on cannot colour a picture of who is winning, however good its
+    # score is - so an outcome board has to cover at least as many agents
+    # as the best screen board before it wins.
     decided = set()
     for n in nodes.values():
         for h in (n.get("history") or []):
             if h.get("board") and (h.get("scoreIs") or "").startswith("outcome"):
                 decided.add(h["board"])
-    ref = (max(sorted(tally), key=lambda b: (b in decided, tally[b], b))
+    best_cover = max(tally.values()) if tally else 0
+    ref = (max(sorted(tally),
+               key=lambda b: (b in decided and tally[b] >= best_cover,
+                              tally[b], b))
            if tally else None)
     for n in nodes.values():
         n["score"] = next((h for h in (n.get("history") or [])

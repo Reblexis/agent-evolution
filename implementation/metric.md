@@ -445,3 +445,27 @@ tasks the reference was uncertain about, does the agent beat the reference?
 Nothing honest does. It caught two results that would otherwise have been
 published, and its false-negative direction is safe - a contaminated agent
 that fails to exploit its knowledge is merely uninformative.
+
+## A board nobody current ran on cannot colour the picture
+
+The page picks one reference board, because scores do not transfer between
+boards and colouring each agent by whichever board it last ran on puts two
+different exams on one scale. Given a choice it prefers a board scored
+against outcomes over one scored against a screen, and that preference is
+right: the two rank differently, and the screen has inverted a ranking.
+
+The preference was written with no coverage condition, and a two-agent
+historical board then beat the live nine-agent one. Every current agent
+rendered as **not scored yet** while the page cited a board that had been
+retired for being a floor test. The numbers were all sitting in the loader;
+only the choice of exam was wrong, so nothing looked broken - the page just
+quietly said the population had never been measured.
+
+So the rule now needs both: an outcome board wins **only if it covers at
+least as many agents as the best screen board does.** Quality of the
+instrument does not override whether it was pointed at anybody.
+
+The general form, which is why this sits with the other metric laws: **a
+selection rule that ranks instruments by quality alone will eventually pick
+an excellent measurement of the wrong population.** Coverage is not a
+tiebreak under quality, it is a precondition for quality mattering at all.
