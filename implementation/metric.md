@@ -407,3 +407,41 @@ same thing differ by the same spread whatever shift they share, so noise
 decompositions measured on a biased slice are still valid. "Which of these
 two is better" measured on one is not, unless the two have the same mean
 output - and that has to be checked and reported, not assumed.
+
+### A board of already-solved tasks is a floor test, not a ranking
+
+Waiting for tasks to resolve is often the rate limit on a research loop, so
+the obvious shortcut is to score agents on tasks that have already
+finished, choosing tasks whose answers postdate the model's training data
+so it cannot know them. That works, and it works for less than it looks.
+
+On one project it produced nineteen agents scored in an afternoon against
+300 resolved tasks, at $2.54, replacing a three-week wait. Then the check
+for having read rather than predicted the answer - comparing each agent
+against the reference price on the tasks the reference itself was unsure
+about - flagged three agents. Sorted by that check, **the flagged three
+were the three most capable agents on the board, the next three were
+borderline, and the clean agents were the weakest.**
+
+Two of the three had been the day's headline results in the hour before
+they were checked.
+
+**Capability and contamination are the same axis.** A stronger model
+recalls more. A model given room to reason recalls more - one agent's
+parent, with identical search, was clean, and the child differed only in
+being allowed to think out loud. A more capable search finds more. Every
+axis along which an agent gets better is an axis along which it gets better
+at finding an answer that already exists.
+
+So the instrument can say **whether an agent beats a constant** and cannot
+say **which of two good agents is better**, because the better one is the
+more likely to be cheating. Use it for the floor, for negative results, and
+for anything measured below the contamination line. Rank the top of the
+table on tasks that resolve after the agent runs, and accept that this is
+the slow measurement the shortcut was meant to replace.
+
+**The check itself is worth building whatever else you do.** It is: on the
+tasks the reference was uncertain about, does the agent beat the reference?
+Nothing honest does. It caught two results that would otherwise have been
+published, and its false-negative direction is safe - a contaminated agent
+that fails to exploit its knowledge is merely uninformative.
