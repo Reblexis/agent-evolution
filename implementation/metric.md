@@ -469,3 +469,39 @@ The general form, which is why this sits with the other metric laws: **a
 selection rule that ranks instruments by quality alone will eventually pick
 an excellent measurement of the wrong population.** Coverage is not a
 tiebreak under quality, it is a precondition for quality mattering at all.
+
+## A starved run scores like a bad idea
+
+The worst failure in a scored population is not a crash. A crash is
+labelled. It is the run that completes, reports a number, and had no way of
+succeeding.
+
+An overnight chain died on its fifth run because the agent's prepaid token
+credit ran out. The gate answered 402 to every call. Each way of looking
+caught the error - correctly, since a single failed search should not lose
+a whole market - returned nothing, and the agent scored **1 market out of
+50 in six seconds for a tenth of a cent**. Two agents were within one
+sentence of being written off as bad ideas. The idea was untested.
+
+Robust error handling is what made it silent. Every layer did the right
+local thing and the aggregate lied.
+
+**Three defences, in order of how much they are worth.**
+
+1. **The runner owns the preconditions, not the agent.** Funding, keys,
+   quota - anything a run needs and an agent should never think about -
+   is checked and repaired by the thing that brackets the run. An agent
+   that has to remember to top up its own account is one that will
+   eventually forget, and every new agent forgets by default.
+2. **Report the denominator, always.** "answered 1/50" was in the output
+   and it is the only reason this was caught. A score without a count of
+   what it was computed over cannot be sanity-checked by a reader who is
+   moving fast, and the reader is always moving fast at 1am.
+3. **Refuse to score below a floor of coverage.** A run that answered a
+   twentieth of its board should not produce a number at all. A number,
+   once printed, gets compared to other numbers.
+
+The generalisation: **check that a result was *possible* before asking
+whether it is *good*.** Cost per market, wall clock and answered count all
+collapse together when a run is starved, and any one of them read before
+the score would have caught it in a second.
