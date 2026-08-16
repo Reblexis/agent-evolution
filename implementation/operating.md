@@ -162,3 +162,26 @@ every fix to it lands one full run later. The same deadlock was fixed three
 times and reappeared each time because the copy in memory was the old one.
 If a worker snapshots itself, the fix is not deployed until the worker is
 restarted, and nothing about the repository state will tell you that.
+
+### The self-match trap is not only about pkill
+
+Recorded here once already as a `pkill -f` rule: a pattern broad enough to
+match the target is usually broad enough to match the shell that issued it.
+
+It came back in a different shape - a *wait* loop rather than a kill:
+
+    until [ "$(pgrep -f bin/bench | wc -l)" = "0" ]; do sleep 20; done
+
+The loop is itself a process whose command line contains `bin/bench`, so
+the count never reaches zero and the wait hangs until its timeout. Nothing
+errors, nothing is logged, and the run it was waiting for finishes
+unnoticed. It is worse than the `pkill` version, which at least kills
+something visibly.
+
+So the rule generalizes: **any self-referential `pgrep -f` is wrong, whether
+it kills, counts, or waits.** Match on a PID captured when the process
+started, or wait on the thing the work produces - a line in its log, a file
+appearing - rather than on the absence of a process pattern. Waiting on
+output is also the more honest condition, because a process that died still
+satisfies "no longer running" and a log line only appears if the work
+actually happened.
