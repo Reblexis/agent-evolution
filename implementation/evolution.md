@@ -692,3 +692,50 @@ So:
   Leave-one-out over logged member outputs is free and answers it in one
   pass. This population spent three generations discovering it the
   expensive way.
+
+## Audit the method space, not just the graph
+
+A population explores the neighbourhood of what it already contains. That
+is what makes it converge and it is also how it misses whole families of
+approach - not by rejecting them, but by never generating a node that could
+have been one.
+
+One population ran seventeen generations in which **every agent reached a
+model through a single HTTP call and orchestrated the work itself in
+Python**: how many searches, which questions, in what order, how to combine
+the answers. Sixteen of the seventeen were variations on that
+orchestration. Nobody proposed handing the whole task to an agent with its
+own tools, and when the comparison was finally run, one such agent beat the
+hand-built pipeline outright.
+
+The blind spot was not a bad judgement about the method. It was that the
+method was never a candidate, because every operator takes an existing node
+as input and the graph contained nothing of that kind to mutate.
+
+**So the method space needs auditing separately from the graph**, on a
+schedule, by asking what an agent could *be* rather than what this agent
+could become. A rough taxonomy for a task that produces an estimate:
+
+- **one call** - a prompt and a reply
+- **a fixed pipeline** - several calls the designer wired together, which
+  is where populations naturally pile up because every operator is a small
+  edit to one
+- **a self-orchestrating agent** - given tools and left to decide what to
+  do next based on what it just learned. **A pipeline cannot express a step
+  conditioned on the result of the previous step**; this is a strictly
+  larger space, not a tidier version of the same one
+- **many agents** - debate, panels, independent attempts judged against
+  each other
+- **a trained or fitted artifact** - anything learned from the population's
+  own history rather than prompted
+- **a tool that is not a model at all** - a solver, a database, a
+  calculation, an existing forecast source
+
+The check is one question per row: **does the graph contain any node of
+this kind?** A row with no nodes is not evidence the method is bad. It is
+evidence nobody has tried it, and those are different, and only one of them
+is a reason not to spend.
+
+`crazy-new-thing` exists for this and is not sufficient on its own,
+because it also starts from "read the graph" and the graph is the thing
+with the hole in it.
