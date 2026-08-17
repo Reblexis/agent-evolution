@@ -581,3 +581,36 @@ because the whole curve came free from logged component outputs.
 That last part is now the strongest argument for logging every member's
 output on every run: it has twice produced the finding that outranked the
 run's own headline number.
+
+### Check where the correlation is before paying to decorrelate
+
+An aggregate that has stopped improving is limited by how alike its members
+are, so the natural move is to make them less alike. The expensive way to
+do that is to diversify the model. It is also usually the wrong one.
+
+Measured: nine members read by three model families - three different labs,
+three different training sets - disagreed with each other **0.106**, while
+the same model reading three different inputs disagreed with itself 0.089
+to 0.117. The between-family number sat inside the within-family range.
+Three labs bought no diversity whatsoever.
+
+The reason generalises past this population. Each member was conditioned on
+its own retrieved evidence and largely transcribed it. **When members are
+conditioned on different inputs, the inputs supply nearly all the variance
+and the model supplies almost none.** Swapping models decorrelates members
+that differ only in sampling; it does nothing for members that already
+differ in what they were shown.
+
+So before spending on diversity:
+
+- **Measure between-source spread against within-source spread.** It is one
+  number from data you already have if member outputs are logged, and it
+  says whether the axis you are about to buy has any room in it.
+- **Diversify the axis that carries the variance.** Here that was
+  retrieval, not inference, and the population had spent twelve generations
+  varying the wrong one without noticing, because the model was a constant
+  nobody had written down as a choice.
+- **An unnamed constant is not a validated one.** Worth auditing what a
+  population has never varied. Sometimes, as here, the answer is that it
+  never mattered - which is itself worth knowing cheaply rather than
+  assuming expensively in either direction.
