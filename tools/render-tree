@@ -10,6 +10,8 @@ whatever the project's runner writes, read for these keys:
 """
 import html
 import json
+import statistics
+import math
 import os
 import re
 import sys
@@ -334,6 +336,61 @@ def render(root, cfg, nodes, asks):
         if pe is None:
             continue
         ops.setdefault(op, []).append(s["edge"] - pe)
+    # Which operator gets picked next, as a distribution rather than a
+    # ranking. Each operator has a posterior over its true mean gain -
+    # narrow if it has many children, wide if few, centred on zero if
+    # untried - and the next move is chosen by drawing one number from each
+    # and taking the best. So the honest picture is "how often would each
+    # one win", not "which has the best average".
+    KNOWN_OPS = ("autopsy", "rational-ablation", "rational-substitution",
+                 "rational-crossover", "booster", "rational-graft",
+                 "rational-specialization", "rational-restart", "step-back",
+                 "first-principles", "crazy-new-thing", "ask-operator")
+    import random as _rnd
+    _r = _rnd.Random(7)
+    allg = [g for v in ops.values() for g in v]
+    sigma = max((statistics.pstdev(allg) if len(allg) > 1 else 3.0), 0.5)
+    means = [statistics.mean(v) for v in ops.values() if v]
+    tau = max((statistics.pstdev(means) if len(means) > 1 else 1.0), 1.0)
+    post = {}
+    for o in KNOWN_OPS:
+        v = ops.get(o) or []
+        if not v:
+            post[o] = (0.0, tau, 0)
+            continue
+        p0, pn = 1.0 / (tau * tau), len(v) / (sigma * sigma)
+        post[o] = ((pn * statistics.mean(v)) / (p0 + pn),
+                   math.sqrt(1.0 / (p0 + pn)), len(v))
+    wins = dict.fromkeys(post, 0)
+    TRIALS = 4000
+    for _ in range(TRIALS):
+        d = {o: _r.gauss(m, s) for o, (m, s, _n) in post.items()}
+        wins[max(d, key=d.get)] += 1
+    bars = ""
+    for o in sorted(post, key=lambda x: -wins[x]):
+        m, s, n = post[o]
+        pct = 100.0 * wins[o] / TRIALS
+        bars += (
+            '<tr><td style="padding:2px 8px 2px 0">%s</td>'
+            '<td style="width:100%%;padding:2px 0">'
+            '<div style="background:var(--accent);height:11px;width:%.1f%%;'
+            'border-radius:2px;min-width:1px"></div></td>'
+            '<td style="text-align:right;padding:2px 0 2px 8px;'
+            'white-space:nowrap" class="dim">%.0f%% &nbsp; %s</td></tr>'
+            % (esc(o), max(pct * 2.2, 0.4), pct,
+               ("%d tried" % n) if n else "untried"))
+    next_html = (
+        '<h2>What gets tried next</h2><div class="box">'
+        '<p class="dim">The next move is drawn, not ranked. Each operator '
+        'has a range of plausible true values - wide when it has been tried '
+        'once or never, narrow when it has been tried often - and the bar is '
+        'how often it would come out on top if the choice were made now. An '
+        'untried move sits at "no effect" with a wide range, so it gets '
+        'picked sometimes; a move that has failed repeatedly narrows toward '
+        'its real value rather than being banned.</p>'
+        '<table style="width:100%%;border-collapse:collapse;font-size:13px">'
+        '%s</table></div>' % bars)
+
     if ops:
         rows_html = ""
         for op, gains in sorted(ops.items(),
@@ -364,6 +421,7 @@ def render(root, cfg, nodes, asks):
             '%s</table></div>' % rows_html)
     else:
         operators_html = ""
+    operators_html = next_html + operators_html
 
     # The timeline of improvements, if the project keeps one. A population
     # page shows what exists; it does not show whether any of it is getting
