@@ -208,3 +208,42 @@ The same applies to files the machine itself writes and that were recently
 promoted from ignored to tracked. Their previous behaviour - survive
 everything, travel nowhere - is the opposite of their new one, and the
 habits formed under the old behaviour are now wrong.
+
+### Everything a working machine produces is in limbo by default
+
+A repo has two honest states for a file: tracked, or deliberately ignored.
+The third state - untracked and not ignored - is where work goes to die on
+a remote machine, and it is invisible rather than broken, which is why it
+survives.
+
+Three of them turned up in one night on one box:
+
+- the **timeline** the progress chart reads, so the chart silently showed
+  a two-entry history while the population had moved on
+- the **rendered page** the operator actually looks at, which had gone
+  stale for a day because the served copy was a copy nothing was making
+- the **eight boards** every published score refers to, so the entire
+  population's results pointed at eval sets living on exactly one disk
+
+Each was found by accident. None announced itself, because nothing was
+failing - the runs ran, the scores published, the page served.
+
+**The pattern is that output is untracked by default and inputs are not.**
+Code arrives by pull, so it is tracked. Results, boards, renders, logs and
+state are *created* on the machine, so they start in limbo and stay there
+until somebody notices. A deploy script that syncs code and commits "the
+data" will always be missing something, because the list of what counts as
+data grows every time the project learns to produce a new kind of file.
+
+Two rules:
+
+- **State the invariant and let the machine check it**, rather than
+  maintaining a list. One line - list anything neither tracked nor
+  ignored - catches every future instance including the kinds nobody has
+  invented yet. Maintaining an allow-list catches only what was already
+  understood.
+- **A guard must name everything its action touches.** The commit here was
+  wrapped in a condition watching only two paths of the five it committed,
+  so a change confined to an unwatched path never triggered the commit at
+  all. That is worse than not having the guard, because the commit visibly
+  happens and quietly omits things.
