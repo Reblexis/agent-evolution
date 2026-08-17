@@ -389,6 +389,44 @@ The check that says whether any of this is worth running: compare the
 population's average output against its best member. If averaging wins,
 selection is for breeding only and the round's output is an ensemble.
 
+## Combining several members: the settled position
+
+The sections below were written one measurement at a time and two of them
+correct earlier ones. This is what survived, so a reader does not have to
+reconstruct it from the order it was discovered in.
+
+**Aggregation is not one knob, it is three interacting ones**: the rule,
+the number of members, and how alike the members are. Changing any of them
+invalidates conclusions about the others, which is the single most
+expensive lesson in this file.
+
+1. **Every rule saturates. The number worth knowing is where.** Measured
+   on one population: the mean stopped paying at four members, the median
+   at ten to twelve. "Does averaging help" has no answer; "averaging helps
+   to four, medians to twelve" does. Measure the curve over k, never two
+   points.
+2. **The gap between two rules is a function of member count**, so a
+   single-board comparison of two aggregators is secretly a measurement of
+   the population size it ran at. Two such comparisons at different sizes
+   will contradict each other and it will look like noise.
+3. **Which rule fits depends on how the bad members fail.** Diffusely wrong
+   members - noisy, or confabulating something middling - argue for a
+   median. Members that are silent then decisive argue for a mean, or for
+   being heard outside the aggregate entirely.
+4. **Under a rank rule, weak members are load-bearing**, so selection -
+   picking the best, dropping the worst, swapping the worst - is close to
+   always wrong. Under a mean it is sensible. Diagnose the regime before
+   funding a selection operator.
+5. **Before paying to decorrelate, find out where the correlation is.**
+   When members are conditioned on different inputs, the inputs carry
+   nearly all the variance and the model carries almost none.
+
+**And the measurement that makes all of this free**: log every member's
+output on every run. The subset curve, the leave-one-out table, the
+within-source versus between-source spread all fall out of data already
+paid for, and on this project they twice produced the finding that
+outranked the run's own headline number.
+
 ## Averaging raises the floor and lowers the ceiling
 
 A population that can average its members will keep proposing to average
