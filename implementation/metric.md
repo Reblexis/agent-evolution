@@ -663,3 +663,59 @@ Three cautions, learned the same night:
   same as discriminating better between tasks. Only the second one pays,
   and a score that improves for the first reason will be misread as the
   second by whoever reads it next - including you.
+
+## A fresh board drawn the same way is not a fresh board
+
+Held-out evaluation assumes the held-out set is a different sample. That
+assumption is about the *sampler*, not about the timestamp on the file, and
+it fails quietly in a very ordinary setup:
+
+- a fixed random seed, which is normally good practice and is why nobody
+  looks at it
+- a pool of eligible tasks that changes slowly, which is normally fine
+- a sampler that therefore returns nearly the same tasks each time
+
+One project froze eight boards over a night and they overlapped each other
+**52% to 100%** - two pairs identical, 25 tasks present on all eight, 16
+tasks unique to any board. Every held-out result from that night was
+measured on tasks it had been fitted on.
+
+**It cannot be seen from one board.** Each was fifty tasks with a sensible
+spread and a plausible score. Boards are inputs, and an input that has
+never been wrong is not audited.
+
+Three defences:
+
+- **Seed from the sample's own identity** - its name, its timestamp - not
+  from a constant. That keeps a named sample exactly reproducible, which is
+  what the fixed seed was for, while making two samples genuinely
+  different.
+- **Print the overlap with the previous sample at build time.** One line.
+  A sample is only suspicious next to another sample, so the comparison has
+  to be automatic or it never happens.
+- **Treat "held out" as a claim requiring evidence**, like any other. The
+  evidence is the overlap number, and before that number exists the phrase
+  is an assumption wearing the clothes of a control.
+
+## When two instruments disagree, one of them is broken
+
+This is the lesson that would have saved the night above, and it was
+available for hours before anyone acted on it.
+
+Two ways of measuring the same effect were in use: a within-run comparison
+holding tasks and intermediate outputs fixed, and a cross-board comparison
+re-running a baseline separately. They disagreed repeatedly - one said a
+change was worth +0.64, the other said -0.25; one said a member helped, the
+other said it hurt - and each disagreement was written off as noise,
+because a noisy benchmark is the expected explanation and there was a
+measured noise band to point at.
+
+**The disagreement was not noise. One instrument was broken**, and the
+pattern of which one won was the evidence: the within-run measurements were
+right every time. A genuinely noisy pair disagrees *in both directions* and
+neither wins consistently.
+
+So: **when two measurements of the same thing disagree more than once,
+count who wins.** If it is not close to even, stop treating it as variance
+and go and find out why. Noise is symmetric; a broken instrument has a
+direction, and the direction is the tell.
