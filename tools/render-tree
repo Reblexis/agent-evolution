@@ -146,10 +146,39 @@ def render(root, cfg, nodes, asks):
                key=lambda b: (b in decided and tally[b] >= best_cover,
                               tally[b], b))
            if tally else None)
+    # Show every agent's newest score, on whatever board it ran, and
+    # compare them by how far each beat that board's own best constant.
+    #
+    # This used to require one shared reference board, and the champion
+    # then rendered as "not scored yet" because it had never run on the
+    # board most agents shared. A picture of a population that cannot show
+    # its best member is not a picture of the population. The reason the
+    # rule existed is real - raw scores do not transfer between boards -
+    # and the fix is to plot the quantity that does: the gap to a constant,
+    # which every board defines for itself.
     for n in nodes.values():
-        n["score"] = next((h for h in (n.get("history") or [])
-                           if h.get("board") == ref), None)
+        hist = [h for h in (n.get("history") or []) if h.get("score")
+                is not None]
+        on_ref = [h for h in hist if h.get("board") == ref]
+        newest = sorted(hist, key=lambda r: r.get("at") or "")[-1] \
+            if hist else None
+        s = (on_ref[0] if on_ref else newest)
+        if s:
+            s = dict(s)
+            bc = (s.get("bestConstant") or {}).get("price")
+            s["edge"] = (bc - s["score"]) if bc else None
+            s["onRef"] = bool(on_ref)
+        n["score"] = s
 
+    # Rank by edge where it exists, so agents on different boards are
+    # comparable; fall back to raw score for anything without a constant.
+    edges = [n["score"]["edge"] for n in nodes.values()
+             if (n.get("score") or {}).get("edge") is not None]
+    if edges:
+        for n in nodes.values():
+            s = n.get("score")
+            if s and s.get("edge") is not None:
+                s["score"] = round(s["score"], 2)
     vals = [n["score"]["score"] for n in nodes.values()
             if (n.get("score") or {}).get("score") is not None]
     smin, smax = (min(vals), max(vals)) if vals else (None, None)
@@ -265,6 +294,61 @@ def render(root, cfg, nodes, asks):
                       % (esc(a.get("what", a["file"])), esc(a.get("why", "")),
                          esc(a.get("unblocks", "")), body, form))
     asks_html = "".join(blocks) or "<li>Nothing right now.</li>"
+
+    # Which operators actually produce winners. The graph records which
+    # move made each node, so this is free - group by it, and compare each
+    # child to the parent it was made from on whatever each of them ran on.
+    #
+    # Comparing raw scores across boards would measure the boards, so the
+    # comparison is in edge: how far each beat the best constant on its own
+    # board. An operator's number is the mean change in that.
+    ops = {}
+    for n in nodes.values():
+        op = (n.get("meta") or {}).get("operator")
+        s = n.get("score") or {}
+        if not op or s.get("edge") is None:
+            continue
+        parents = n.get("parents") or []
+        pe = None
+        for p in parents:
+            pn = nodes.get(p)
+            ps = (pn or {}).get("score") or {}
+            if ps.get("edge") is not None:
+                pe = ps["edge"]
+                break
+        if pe is None:
+            continue
+        ops.setdefault(op, []).append(s["edge"] - pe)
+    if ops:
+        rows_html = ""
+        for op, gains in sorted(ops.items(),
+                                key=lambda kv: -sum(kv[1]) / len(kv[1])):
+            avg = sum(gains) / len(gains)
+            win = sum(1 for g in gains if g > 0)
+            colour = "var(--good)" if avg > 0 else "var(--muted)"
+            rows_html += (
+                '<tr><td>%s</td><td style="text-align:right">%d</td>'
+                '<td style="text-align:right">%d</td>'
+                '<td style="text-align:right;color:%s">%+.2f</td></tr>'
+                % (esc(op), len(gains), win, colour, avg))
+        operators_html = (
+            '<h2>Which moves are working?</h2><div class="box">'
+            '<p class="dim">Every agent records the operator that made it, '
+            'so this is the graph counting itself. "gained" is how much '
+            'further the child beat its board\'s best constant than its '
+            'parent beat that parent\'s - a comparison in edge, because raw '
+            'scores do not transfer between boards. One or two children is '
+            'not evidence about an operator; it is a note that it has been '
+            'tried.</p>'
+            '<table style="width:100%%;border-collapse:collapse;'
+            'font-size:14px">'
+            '<tr class="dim"><th style="text-align:left">operator</th>'
+            '<th style="text-align:right">children</th>'
+            '<th style="text-align:right">better than parent</th>'
+            '<th style="text-align:right">mean gained</th></tr>'
+            '%s</table></div>' % rows_html)
+    else:
+        operators_html = ""
 
     # The timeline of improvements, if the project keeps one. A population
     # page shows what exists; it does not show whether any of it is getting
@@ -426,7 +510,8 @@ document.addEventListener('mousemove',function(e){
         esc(cfg.get("name", "population")), esc(cfg.get("title")
                                                 or cfg.get("name", "")),
         note, time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()), note_board,
-        legend, "".join(svg), timeline_html, asks_html, answer_js)
+        legend, "".join(svg), operators_html + timeline_html, asks_html,
+        answer_js)
 
 
 def main():
