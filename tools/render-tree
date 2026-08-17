@@ -162,11 +162,23 @@ def render(root, cfg, nodes, asks):
         on_ref = [h for h in hist if h.get("board") == ref]
         newest = sorted(hist, key=lambda r: r.get("at") or "")[-1] \
             if hist else None
+        # Where an agent ran more than once, show the MEAN of its runs and
+        # the range, never one of them. Picking the newest or the best is
+        # cherry-picking by accident: one agent here scored 13.55 and 15.29
+        # on two boards and every report of it quoted 13.55, while the page
+        # showed 15.3, and the two disagreed for weeks' worth of reasons
+        # that were really just "which run did you look at".
         s = (on_ref[0] if on_ref else newest)
         if s:
             s = dict(s)
-            bc = (s.get("bestConstant") or {}).get("price")
-            s["edge"] = (bc - s["score"]) if bc else None
+            vals = [h["score"] for h in hist]
+            s["runs"] = len(vals)
+            s["score"] = sum(vals) / len(vals)
+            s["lo"], s["hi"] = min(vals), max(vals)
+            edges = [((h.get("bestConstant") or {}).get("price") or 0)
+                     - h["score"] for h in hist
+                     if (h.get("bestConstant") or {}).get("price")]
+            s["edge"] = (sum(edges) / len(edges)) if edges else None
             s["onRef"] = bool(on_ref)
         n["score"] = s
 
@@ -227,6 +239,9 @@ def render(root, cfg, nodes, asks):
             if isinstance(lo, (int, float)) and isinstance(hi, (int, float)):
                 line += " [%.1f, %.1f]" % (lo, hi)
             line += " on %s" % (s.get("board") or "?")
+            if (s.get("runs") or 1) > 1:
+                line += " (mean of %d runs, %.2f to %.2f)" % (
+                    s["runs"], s["lo"], s["hi"])
             if s.get("answered") is not None:
                 line += ", answered %s of %s" % (s["answered"], s.get("of"))
             bc = (s.get("bestConstant") or {}).get("price")
