@@ -106,3 +106,39 @@ A research agent runs once and stops. It cannot stand by, watch, or wait for
 something to finish. Work either runs to completion inside the session, or
 it is launched detached with the exact command to resume it recorded in the
 log. An agent that reports it is waiting has ended without doing the work.
+
+## When the measurement is cheap, never infer
+
+Six numbers were reported and then corrected in one night's work. Every one
+was an inference from data already in hand, and in every case measuring
+directly would have taken under two minutes.
+
+| reported | actual | how it was derived |
+|---|---|---|
+| the spend was search fees | it was a 6-8x under-book of everything | inferred from a plausible mechanism |
+| the median never saturates | it saturates at 10-12 | extrapolated from a curve that stopped at 9 |
+| two calibrations are worth ~2.2 points | 1.42 | slice gain x slice size, added |
+| 136 markets on one venue | 10 | rows counted as markets |
+| widening the window gives ~312 | 24 at a year, 125 at two | read off a funnel instead of run |
+| twice as accurate where members agree | 4.4 points of edge, not a doubling | raw error without each slice's floor |
+
+**None of these felt like guesses.** Each was arithmetic over real data, of
+the kind that is right most of the time, and that is exactly the problem:
+an inference that feels like a calculation does not trigger the instinct to
+check. A guess announces itself. A derivation does not.
+
+The pattern in the errors is also consistent - **every single one
+overstated the result.** Not because of wishful thinking about any
+particular claim, but because the simplifying assumption that makes an
+inference easy is nearly always the one that ignores an interaction:
+overlapping slices, a curve that has not turned yet, rows that are not
+independent, a floor that differs between groups.
+
+The rule: **if the direct measurement costs less than five minutes, it is
+not optional, no matter how confident the arithmetic feels.** And when
+reporting a number that was derived rather than measured, say so in the
+same sentence - "estimated at 2.2 by multiplying the slice gains" invites
+the check that "worth 2.2 points" does not.
+
+The corollary for anyone reading a research log: **treat every number
+without a measurement behind it as an upper bound.**
