@@ -613,3 +613,53 @@ Two consequences worth keeping:
   approximation of it.** It holds constant everything the re-run
   re-randomises. Treating it as second-best gets the preference exactly
   backwards.
+
+## Find the slices where a constant beats your agent
+
+One pooled score is the average of every regime the agent operates in, and
+an agent can be excellent on most of them while being **worse than a
+constant** on others. The average hides it perfectly, because the good
+slices pay for the bad ones and the total still improves generation over
+generation.
+
+Measured on one population that had run fourteen generations and thought
+it knew where its error was:
+
+| slice | agent | best constant | edge |
+|---|---|---|---|
+| venue A | 10.01 | 1.98 | **-8.02** |
+| venue B | 18.11 | 30.01 | +11.91 |
+
+Every point of measured skill was on one venue. On the other the agent was
+eight points worse than saying the same number every time, and had been
+since the population was created.
+
+**The diagnostic is one pass and it should be standard.** Partition the
+scored tasks by anything observable *at prediction time* - source, task
+type, a regex over the text, the agent's own internal disagreement - and
+for each slice compute the agent's score **and the best constant on that
+slice**. Any slice where the constant wins is a slice the agent should not
+be answering with its own judgement.
+
+Two kinds of fix, and both are calibration rather than skill:
+
+- **The agent is systematically mis-scaled on the slice.** It hedges toward
+  the middle while that slice is nearly all extremes. Scale it, conditional
+  on the observable.
+- **The agent has no information on the slice at all** - tasks about
+  private lives, fiction, in-jokes, anything with no record to retrieve.
+  Answer the slice's base rate and skip the retrieval entirely, which saves
+  the money as well.
+
+Three cautions, learned the same night:
+
+- **The partition must be observable at prediction time.** Slicing by the
+  true answer produces a large, convincing, uncorrectable pattern - see the
+  regression section above.
+- **Validate leave-one-slice-out**, or the correction is fitted to the
+  boards that revealed it.
+- **State plainly that it is not edge.** Beating your own previous score by
+  being less wrong where you know nothing is worth having and is not the
+  same as discriminating better between tasks. Only the second one pays,
+  and a score that improves for the first reason will be misread as the
+  second by whoever reads it next - including you.
