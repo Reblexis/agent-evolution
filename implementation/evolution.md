@@ -614,3 +614,43 @@ So before spending on diversity:
   population has never varied. Sometimes, as here, the answer is that it
   never mattered - which is itself worth knowing cheaply rather than
   assuming expensively in either direction.
+
+### In a rank-based aggregate, weak members are load-bearing
+
+Three operators failed the same way in one population before the shape was
+visible: pick the best member, swap the worst member, drop the worst
+member. All three are *selection*, and selection is the wrong operation on
+an aggregate that combines by rank.
+
+Leave-one-out over nine members, two boards. Removing **any** member made
+one board worse - all nine candidates, by +0.23 to +2.79 - and no removal
+helped both. The worst member by a mile, ranked seventh and ninth and
+scoring 21.70 alone against the ensemble's 13.55, cost 2.73 points to
+remove.
+
+And the ranking was not noise: per-member quality correlated 0.56 across
+boards, with the same member best on both. **The ranking was real, and
+acting on it was still wrong.**
+
+The mechanism is worth stating because it is not obvious and it decides
+which operators are worth funding:
+
+**A member of a mean contributes its value. A member of a median
+contributes its position.** The eighth-best number is not competing to be
+the answer - it is occupying a slot in an ordering, and by sitting at
+position eight it keeps something worse off position five. Delete it and
+you do not delete its error, you promote a different number into the
+middle. Weak members are load-bearing in a way that has no analogue under
+averaging.
+
+So:
+
+- **Under a mean, selection is sensible** - members contribute
+  proportionally and a bad one is a real tax.
+- **Under a median or any rank rule, selection is close to always wrong**,
+  and the right operators are ones that add members or change what all
+  members see.
+- **Diagnose which regime you are in before funding a selection operator.**
+  Leave-one-out over logged member outputs is free and answers it in one
+  pass. This population spent three generations discovering it the
+  expensive way.
