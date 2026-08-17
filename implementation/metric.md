@@ -537,3 +537,44 @@ few weeks turns "it matures over time" into a specific week, and a specific
 week is actionable: it says stop checking until then. "Over time" invites a
 daily look at a number that cannot yet mean anything, and a number looked
 at daily eventually gets believed.
+
+## Regression toward the middle is not a bias you can correct
+
+A tempting table. Bucket predictions by the *true* value and compare:
+
+| true value | mean estimate | estimate minus truth |
+|---|---|---|
+| 0.00-0.05 | 0.234 | **+0.213** |
+| 0.05-0.20 | 0.302 | +0.185 |
+| 0.20-0.50 | 0.409 | +0.067 |
+| 0.50-0.80 | 0.475 | -0.175 |
+| 0.80-1.01 | 0.684 | **-0.236** |
+
+It reads as a large, systematic, obviously fixable defect: the estimator is
+under-confident everywhere, so stretch it away from the middle and collect
+several points for free. Overall bias was +0.020, so it is not optimism or
+pessimism, just compression.
+
+**Measured, the correction is worth nothing and usually costs.** The best
+stretch factor per board came out 0.9, 1.0, 1.0, 1.1, 1.2, 1.6, 1.7 - no
+transfer at all - and on the two largest boards it was exactly 1.0. A fixed
+stretch chosen from the table made every large board worse, 15.32 to 16.92
+on one.
+
+**The table is an artifact of how it was built.** Conditioning on the truth
+and averaging the estimates will show regression toward the middle for any
+estimator that is not perfect, and the amount of regression is a measure of
+how uncertain it is, not of how biased it is. Compressing toward the middle
+is *correct* behaviour under uncertainty. Undoing it requires knowing which
+bucket a case is in, which is the thing being estimated.
+
+The general rule: **a bias measured by conditioning on the answer cannot be
+corrected without the answer.** Before acting on any per-bucket table, ask
+whether the bucketing variable is available at prediction time. If it is
+not, the pattern is real, describes the estimator honestly, and is not a
+lever.
+
+The safe version of the same question - bucket by something the agent
+*can* see (its own confidence, its members' spread, the question type) and
+look for bias there. That table is actionable because the agent can
+condition on it too.
