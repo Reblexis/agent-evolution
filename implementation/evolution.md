@@ -548,3 +548,36 @@ And the corollary that costs the most to learn late: **a strict output
 format does not make a model more truthful, it makes its errors better
 disguised.** Free text hedges visibly. A schema does not have a field for
 doubt.
+
+### Every aggregator saturates; the useful number is where
+
+The previous section recorded that the mean saturates and the median does
+not. Half right, and the correction matters more than the original.
+
+Measured over subsets on two boards, the mean is flat from four members
+onward - the same point on both, so it belongs to the aggregator rather
+than to a set of members. The median keeps paying much longer and then
+stops too, at **ten to twelve**. The earlier reading came from a curve that
+ran out at nine, one member short of its own knee, and a curve that has not
+turned yet looks exactly like a curve that never will.
+
+So the general shape: **an aggregator has a saturation point, it is a
+property of the rule, and the only interesting question about two
+aggregators is where each one turns.** "Does averaging help" is not a
+question with an answer. "Averaging helps to four, medians to twelve" is.
+
+Two practical consequences.
+
+**Size the run past where you expect the knee.** A curve measured up to
+exactly the point you can afford will always look like it is still rising,
+and you will conclude that more is better every time. This population did,
+for one generation, and spent a run finding out.
+
+**A flat tail is not a failed experiment.** Locating a knee is the result.
+It closed a lever permanently - one run instead of three generations of
+buying members one at a time - and it did it for the price of one board,
+because the whole curve came free from logged component outputs.
+
+That last part is now the strongest argument for logging every member's
+output on every run: it has twice produced the finding that outranked the
+run's own headline number.
