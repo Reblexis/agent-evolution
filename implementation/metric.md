@@ -578,3 +578,38 @@ The safe version of the same question - bucket by something the agent
 *can* see (its own confidence, its members' spread, the question type) and
 look for bias there. That table is actionable because the agent can
 condition on it too.
+
+## A baseline you can reconstruct is a baseline you should not run
+
+Comparing a child to its parent on the same board is the obvious control,
+and for a large class of changes it is strictly worse than the free
+alternative - as well as costing real money. On one project it was 29% of a
+night's spend.
+
+**If the child logs the outputs of its parts, the parent's answer is often
+arithmetic over rows the run already produced.** A child that adds a
+component, removes one, or combines them differently contains its parent:
+same tasks, same retrieved evidence, same component outputs, differing only
+in the thing under test. Re-running the parent reproduces that comparison
+with fresh randomness added - the same measurement plus a sample of the
+noise band.
+
+Both were run side by side on one question. Within-run, the change was
+worth +0.64; cross-run, it was worth -0.25. The straddle is what settled
+the question, and the cross-run half contributed only the reversal.
+
+**The test**: is the baseline's behaviour a function of data the treatment
+logs? Combining rules, component counts and component identity all are.
+Prompts, retrieval, architecture and model usually are not, because they
+change what the components see.
+
+Two consequences worth keeping:
+
+- **Log component outputs even when nothing needs them yet.** It converts
+  a whole class of future baselines from purchases into arithmetic, and it
+  is the same habit that produces subset curves and leave-one-out tables
+  for free.
+- **A reconstructed baseline is the better measurement, not a cheaper
+  approximation of it.** It holds constant everything the re-run
+  re-randomises. Treating it as second-best gets the preference exactly
+  backwards.
