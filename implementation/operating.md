@@ -279,3 +279,42 @@ So:
 - **Treat "nothing to commit" as a result to check, not as noise to skip.**
   It is the exact message a no-op edit produces, and a no-op edit is
   indistinguishable from a successful one everywhere else.
+
+### Ad-hoc analysis bypasses the instrument's safeguards
+
+A project builds its scoring tool carefully. The tool learns, over several
+mistakes, to report the things that stop a number being misread - how many
+independent clusters are behind it, what the floor is, how many tasks went
+unanswered, whether the sample is large enough to rank on. Those
+protections live in the tool.
+
+Then somebody answers an urgent question with a twenty-line script over the
+same logs, and every one of those protections is absent. Not overridden -
+never written. The script prints a clean number with nothing around it, and
+because it came from the same data it feels like the same measurement.
+
+This happened three times in one night on one project, and the errors were
+exactly the ones the tool already guarded against: a count of rows reported
+as a count of independent tasks, a slice defined by a pattern nobody had
+inspected, and a pool that would have included archived boards had a
+different filter not accidentally excluded them.
+
+**The lesson is not "write more rules".** The rules existed - "pool by the
+unit of independence" was already written down, after a previous version of
+the same mistake - and having them did not help, because a person writing a
+quick script is not reading the rules file.
+
+Two things that do help:
+
+- **Print the denominator next to every number, in the script too.** Rows
+  *and* distinct units, always, even when it is obvious. The one time it is
+  not obvious is the time it matters, and it costs one `len(set(...))`.
+- **Reach for the tool before the script.** If the tool cannot answer the
+  question, that is a gap in the tool worth ten minutes, and the next
+  person to ask gets the safeguards for free. A script answers once and
+  teaches nothing.
+
+The general form: **safeguards attach to instruments, not to people**, so
+work done outside the instrument is unprotected however experienced the
+person is. Speed is exactly when that trade is made, and speed is exactly
+when it is worst.
