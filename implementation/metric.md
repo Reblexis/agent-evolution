@@ -505,3 +505,35 @@ The generalisation: **check that a result was *possible* before asking
 whether it is *good*.** Cost per market, wall clock and answered count all
 collapse together when a run is starved, and any one of them read before
 the score would have caught it in a second.
+
+## Tasks resolve in order of how easy they were
+
+A deciding score that arrives over time - outcomes, ground truth, whatever
+settles later - is usually treated as a matter of patience. Wait longer,
+get more labels, rank sooner.
+
+The labels do not arrive in a random order. **Easy tasks settle first**,
+because being obvious and being quick are the same property in most
+domains. Of the first eleven tasks to resolve on one population's boards,
+ten had been priced by the venue below 0.10 and none fell in the middle
+band at all.
+
+So the early deciding score is computed almost entirely on tasks nobody
+disagreed about, and it ranks agents by whether they produce confident
+answers on obvious questions - which every competent agent does. It looks
+like the real metric arriving early. It is a different metric that will be
+replaced by the real one later, quietly, without changing its name.
+
+Two rules follow.
+
+**Gate the ranking on the informative subset, not the total.** Counting
+resolutions is the wrong denominator; count resolutions *in the band where
+agents disagree*. One population requires fifteen such tasks before it will
+rank at all, and reports how many it has, which is what stops a reader
+mistaking eleven easy labels for progress.
+
+**Date it.** Counting how many uncertain tasks close in each of the next
+few weeks turns "it matures over time" into a specific week, and a specific
+week is actionable: it says stop checking until then. "Over time" invites a
+daily look at a number that cannot yet mean anything, and a number looked
+at daily eventually gets believed.
