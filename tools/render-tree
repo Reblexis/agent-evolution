@@ -509,8 +509,6 @@ line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 %s
 <div class="box">%s</div>
 %s
-<h2>Waiting on you</h2>
-<div class="box"><ul>%s</ul></div>
 <script>
 %s
 (function(){var t=document.getElementById('tip');
@@ -525,7 +523,7 @@ document.addEventListener('mousemove',function(e){
         esc(cfg.get("name", "population")), esc(cfg.get("title")
                                                 or cfg.get("name", "")),
         note, time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()), note_board,
-        legend, "".join(svg), operators_html + timeline_html, asks_html,
+        legend, "".join(svg), operators_html + timeline_html,
         answer_js)
 
 
